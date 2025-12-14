@@ -1,24 +1,59 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
+import Image from 'next/image';
 
 const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
 
-      {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-8 py-20">
-        <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold text-slate-800 mb-6">
-            Selamat Datang di Website Kelas
-          </h1>
-          <p className="text-2xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
-            Platform manajemen kelas online terbaik untuk siswa dan guru
-          </p>
+      {/* Hero Section with Background Image */}
+      <div className="relative h-[600px] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/hero-building.jpg"
+            alt="School Building"
+            fill
+            className="object-cover"
+            priority
+          />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-sky-400/90"></div>
         </div>
 
+        {/* Hero Content */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="max-w-6xl mx-auto px-8 text-center">
+            <h1 className="text-6xl font-bold text-white mb-6 drop-shadow-lg">
+              Selamat Datang di Website Kita
+            </h1>
+            <p className="text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+              Lorem ipsum dolor sit amet consectetur, adipisicing elit. Consequatur, eveniet!
+            </p>
+            <div className="mt-10 flex gap-4 justify-center">
+              <button className="bg-teal-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-teal-600 transition-colors shadow-lg">
+                Mulai Sekarang
+              </button>
+              <button className="bg-white/90 text-slate-800 px-8 py-4 rounded-full text-lg font-medium hover:bg-white transition-colors shadow-lg">
+                Pelajari Lebih Lanjut
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Wave Shape */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 0L60 10C120 20 240 40 360 46.7C480 53 600 47 720 43.3C840 40 960 40 1080 46.7C1200 53 1320 67 1380 73.3L1440 80V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V0Z" fill="rgb(125 211 252)" className="text-sky-300"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-8 py-20">
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* Card 1 */}
           <div className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow">
             <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
@@ -59,6 +94,22 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+        {/* Stats Section */}
+        <div className="mt-20 grid md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+            <div className="text-5xl font-bold text-teal-500 mb-2">1000+</div>
+            <p className="text-slate-600 font-medium">Siswa Aktif</p>
+          </div>
+          <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+            <div className="text-5xl font-bold text-blue-500 mb-2">50+</div>
+            <p className="text-slate-600 font-medium">Guru Berpengalaman</p>
+          </div>
+          <div className="bg-white rounded-2xl p-8 text-center shadow-lg">
+            <div className="text-5xl font-bold text-purple-500 mb-2">100+</div>
+            <p className="text-slate-600 font-medium">Materi Pembelajaran</p>
+          </div>
+        </div>
+
         {/* CTA Section */}
         <div className="mt-20 text-center">
           <div className="bg-white rounded-3xl p-12 shadow-lg">
@@ -70,10 +121,10 @@ const Home: React.FC = () => {
             </p>
             <div className="flex gap-4 justify-center">
               <button className="bg-slate-700 text-white px-8 py-4 rounded-full text-lg font-medium hover:bg-slate-800 transition-colors shadow-lg">
-                Mulai Sekarang
+                Daftar Sekarang
               </button>
               <button className="bg-transparent border-2 border-slate-700 text-slate-700 px-8 py-4 rounded-full text-lg font-medium hover:bg-slate-50 transition-colors">
-                Pelajari Lebih Lanjut
+                Hubungi Kami
               </button>
             </div>
           </div>

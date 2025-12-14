@@ -1,10 +1,11 @@
 export interface Student {
   id: string;
-  nisn: string;
   name: string;
   email: string;
-  birth_date: string;
   class: string;
+  nisn: string;
+  birth_date: string;
+  jenis_kelamin: string;
   created_at?: string;
 }
 
