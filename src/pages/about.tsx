@@ -1,182 +1,451 @@
-import React from 'react';
-import Navbar from '@/components/Navbar';
+import React from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Image from "next/image";
 
 const About: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+
+  // Gallery photos data
+  const galleryPhotos = [
+    {
+      title: "Kegiatan Belajar Mengajar",
+      description: "Suasana belajar yang kondusif dan menyenangkan",
+      image: "/images/gallery/class-1.jpg",
+    },
+    {
+      title: "Study Tour 2024",
+      description: "Kunjungan edukatif ke museum nasional",
+      image: "/images/gallery/study-tour.jpg",
+    },
+    {
+      title: "Perayaan HUT RI",
+      description: "Memeriahkan hari kemerdekaan Indonesia",
+      image: "/images/gallery/independence.jpg",
+    },
+    {
+      title: "Kegiatan Ekstrakurikuler",
+      description: "Mengembangkan bakat dan minat siswa",
+      image: "/images/gallery/extracurricular.jpg",
+    },
+    {
+      title: "Class Meeting",
+      description: "Kompetisi antar kelas yang seru",
+      image: "/images/gallery/class-meeting.jpg",
+    },
+    {
+      title: "Wisuda Angkatan 2024",
+      description: "Pelepasan siswa kelas XII",
+      image: "/images/gallery/graduation.jpg",
+    },
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % galleryPhotos.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(
+      (prev) => (prev - 1 + galleryPhotos.length) % galleryPhotos.length
+    );
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  // Weekly schedule data
+  const weeklySchedule = [
+    {
+      day: "Monday",
+      dayIndo: "Senin",
+      subjects: [
+        { name: "Mapil", time: "08.00-09.20" },
+        { name: "Istirahat", time: "09.20-10.00" },
+        { name: "Bahasa Indonesia", time: "10.00-12.20" },
+        { name: "Istirahat", time: "12.20-13.20" },
+        { name: "Pendidikan Agama", time: "13.20-14.40" },
+      ],
+    },
+    {
+      day: "Tuesday",
+      dayIndo: "Selasa",
+      subjects: [
+        { name: "P.K.K", time: "08.00-09.20" },
+        { name: "Istirahat", time: "09.20-10.00" },
+        { name: "P.K.K", time: "10.00-11.00" },
+        { name: "Pemrograman Web", time: "11.00-12.20" },
+        { name: "Istirahat", time: "12.20-13.20" },
+        { name: "Pemrograman Web", time: "13.20-14.40" },
+      ],
+    },
+    {
+      day: "Wednesday",
+      dayIndo: "Rabu",
+      subjects: [
+        { name: "Opsih", time: "08.00-09.20" },
+        { name: "Basis Data", time: "09.20-11.00" },
+        { name: "Pemrograman Mobile", time: "11.00-12.20" },
+        { name: "Istirahat", time: "12.20-13.20" },
+        { name: "PPKN", time: "13.20-14.40" },
+      ],
+    },
+    {
+      day: "Thursday",
+      dayIndo: "Kamis",
+      subjects: [
+        { name: "Pemrograman Desktop", time: "08.00-10.00" },
+        { name: "Bahasa Inggris", time: "10.00-11.00" },
+        { name: "Istirahat", time: "11.00-12.20" },
+        { name: "Sejarah", time: "12.20-14.40" },
+      ],
+    },
+    {
+      day: "Friday",
+      dayIndo: "Jumat",
+      subjects: [
+        { name: "Mulok", time: "08.00-09.20" },
+        { name: "Istirahat", time: "09.20-10.00" },
+        { name: "PJOK", time: "10.00-11.00" },
+        { name: "Matematika", time: "11.00-12.00" },
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
-      
+
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-8 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-slate-800 mb-4">Tentang Kami</h1>
-          <p className="text-xl text-slate-700 max-w-3xl mx-auto">
-            Platform manajemen pembelajaran online yang memudahkan guru dan siswa dalam proses belajar mengajar
-          </p>
-        </div>
-
-        {/* Story Section */}
-        <div className="bg-white rounded-3xl p-10 shadow-lg mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-teal-500 rounded-2xl flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-bold text-slate-800">Cerita Kami</h2>
-          </div>
-          <p className="text-slate-600 leading-relaxed mb-4">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-          </p>
-          <p className="text-slate-600 leading-relaxed">
-            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-        </div>
-
-        {/* Features Grid */}
+        {/* Class Gallery - Carousel */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">Fitur Unggulan</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Feature 1 */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-14 h-14 bg-blue-500 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Manajemen Siswa</h3>
-              <p className="text-slate-600 text-sm">
-                Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor
-              </p>
-            </div>
+          <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
+            Galeri Kenangan Kelas
+          </h2>
 
-            {/* Feature 2 */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-14 h-14 bg-purple-500 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Dashboard Intuitif</h3>
-              <p className="text-slate-600 text-sm">
-                Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi
-              </p>
-            </div>
+          <div className="bg-white rounded-3xl p-8 shadow-lg">
+            {/* Carousel Container */}
+            <div className="relative">
+              {/* Main Image Display */}
+              <div className="relative h-[500px] rounded-2xl overflow-hidden bg-slate-100 mb-6">
+                {/* Placeholder gradient - akan diganti dengan foto asli */}
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-400 via-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <svg
+                      className="w-24 h-24 mx-auto mb-4 opacity-50"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p className="text-xl font-semibold">
+                      Placeholder: Simpan foto di /public/images/gallery/
+                    </p>
+                  </div>
+                </div>
 
-            {/* Feature 3 */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-14 h-14 bg-teal-500 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Keamanan Terjamin</h3>
-              <p className="text-slate-600 text-sm">
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-              </p>
-            </div>
+                {/* Image would be here */}
+                {/* <Image 
+                  src={galleryPhotos[currentSlide].image} 
+                  alt={galleryPhotos[currentSlide].title}
+                  fill
+                  className="object-cover"
+                /> */}
 
-            {/* Feature 4 */}
-            <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-              <div className="w-14 h-14 bg-amber-500 rounded-xl flex items-center justify-center mb-4">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                {/* Navigation Arrows */}
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Slide Counter */}
+                <div className="absolute bottom-4 right-4 bg-slate-800/80 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  {currentSlide + 1} / {galleryPhotos.length}
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">Mudah Digunakan</h3>
-              <p className="text-slate-600 text-sm">
-                Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia
-              </p>
+
+              {/* Caption */}
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                  {galleryPhotos[currentSlide].title}
+                </h3>
+                <p className="text-slate-600">
+                  {galleryPhotos[currentSlide].description}
+                </p>
+              </div>
+
+              {/* Dots Indicator */}
+              <div className="flex justify-center gap-2 mt-6">
+                {galleryPhotos.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`transition-all ${
+                      currentSlide === index
+                        ? "w-8 bg-teal-500"
+                        : "w-2 bg-slate-300 hover:bg-slate-400"
+                    } h-2 rounded-full`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Team Section */}
+        {/* ================= STRUKTUR KELAS ================= */}
+        <div className="rounded-3xl p-10 mb-8">
+          <h2 className="text-3xl font-bold text-white text-center mb-12">
+            Struktur Kelas
+          </h2>
+
+          <div className="max-w-4xl mx-auto flex flex-col items-center">
+            {/* WALI KELAS */}
+            <p className="text-white text-sm mb-2">Wali Kelas</p>
+            <div className="bg-white rounded-full px-6 py-3 shadow-lg">
+              <p className="font-bold text-slate-800">Latifah S.Pd</p>
+            </div>
+
+            <Image
+              src="/images/LineVertikal.svg"
+              alt=""
+              width={20}
+              height={40}
+            />
+
+            <Image
+              src="/images/LineHorizontal.svg"
+              alt=""
+              width={300}
+              height={20}
+            />
+
+            <div className="flex gap-[260px] -mt-2">
+              <Image
+                src="/images/LineKananKiri.svg"
+                alt=""
+                width={20}
+                height={30}
+              />
+              <Image
+                src="/images/LineKananKiri.svg"
+                alt=""
+                width={20}
+                height={30}
+              />
+            </div>
+
+            <div className="flex gap-[260px] -mt-3">
+              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+            </div>
+
+            {/* KETUA & WAKIL */}
+            <div className="flex gap-40 mt-2">
+              <div className="flex flex-col items-center">
+                <p className="text-white text-sm mb-2">Ketua Kelas</p>
+                <div className="bg-white rounded-full px-6 py-3 shadow-lg">
+                  Aziz
+                </div>
+                <Image
+                  src="/images/LineVertikal.svg"
+                  alt=""
+                  width={20}
+                  height={40}
+                />
+              </div>
+
+              <div className="flex flex-col items-center">
+                <p className="text-white text-sm mb-2">Wakil Ketua</p>
+                <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
+                  Desy
+                </div>
+                <Image
+                  src="/images/LineVertikal.svg"
+                  alt=""
+                  width={20}
+                  height={40}
+                />
+              </div>
+            </div>
+
+            <Image
+              src="/images/LineHorizontal.svg"
+              alt=""
+              width={300}
+              height={20}
+              className="my-4"
+            />
+
+            <div className="flex gap-[260px] -mt-2">
+              <Image
+                src="/images/LineKananKiri.svg"
+                alt=""
+                width={20}
+                height={30}
+              />
+              <Image
+                src="/images/LineKananKiri.svg"
+                alt=""
+                width={20}
+                height={30}
+              />
+            </div>
+
+            <div className="flex gap-[260px] -mt-3">
+              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+            </div>
+
+            {/* SEKRETARIS & BENDAHARA */}
+            <div className="flex gap-40 mt-2">
+              <div className="flex flex-col items-center">
+                <p className="text-white text-sm mb-2">Sekretaris</p>
+                <div className="space-y-2">
+                  <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
+                    Ling
+                  </div>
+                  <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
+                    Vina
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <p className="text-white text-sm mb-2">Bendahara</p>
+                <div className="space-y-2">
+                  <div className="bg-white rounded-full px-6 py-3 shadow-lg">
+                    Fatah
+                  </div>
+                  <div className="bg-white rounded-full px-6 py-3 shadow-lg">
+                    Afif
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule */}
         <div className="bg-white rounded-3xl p-10 shadow-lg mb-8">
-          <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">Tim Kami</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Team Member 1 */}
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-1">John Doe</h3>
-              <p className="text-teal-600 font-medium mb-2">CEO & Founder</p>
-              <p className="text-slate-600 text-sm">
-                Lorem ipsum dolor sit amet consectetur adipiscing elit
-              </p>
-            </div>
+          <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
+            Jadwal Pelajaran
+          </h2>
 
-            {/* Team Member 2 */}
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-1">Jane Smith</h3>
-              <p className="text-purple-600 font-medium mb-2">Lead Developer</p>
-              <p className="text-slate-600 text-sm">
-                Sed do eiusmod tempor incididunt ut labore et dolore
-              </p>
-            </div>
+          {/* Tab-like schedule display */}
+          <div className="grid lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-6">
+            {weeklySchedule.map((day, index) => (
+              <div
+                key={index}
+                className="border-2 border-slate-300 rounded-2xl p-4 bg-slate-50"
+              >
+                {/* Day Header */}
+                <div className="text-center mb-6 pb-4 border-b-2 border-white/30">
+                  <h3 className="text-2xl font-bold text-black">
+                    {day.dayIndo}
+                  </h3>
+                </div>
 
-            {/* Team Member 3 */}
-            <div className="text-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+                {/* Subjects List */}
+                <div className="space-y-3">
+                  {day.subjects.map((subject, idx) => (
+                    <div
+                      key={idx}
+                      className={`${
+                        subject.name === "Istirahat"
+                          ? "bg-amber-100 border-l-4 border-amber-500"
+                          : "bg-white"
+                      } rounded-lg p-3`}
+                    >
+                      <p
+                        className={`font-semibold ${
+                          subject.name === "Istirahat"
+                            ? "text-amber-800"
+                            : "text-slate-800"
+                        }`}
+                      >
+                        {subject.name}
+                      </p>
+                      <p className="text-sm text-slate-600 mt-1">
+                        {subject.time}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-1">Mike Johnson</h3>
-              <p className="text-amber-600 font-medium mb-2">UI/UX Designer</p>
-              <p className="text-slate-600 text-sm">
-                Ut enim ad minim veniam quis nostrud exercitation
-              </p>
-            </div>
+            ))}
           </div>
-        </div>
 
-        {/* Contact Section */}
-        <div className="bg-white rounded-3xl p-10 shadow-lg">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-800 mb-3">Hubungi Kami</h2>
-            <p className="text-slate-600">
-              Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {/* Email */}
-            <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
+          {/* Notes */}
+          <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 rounded-2xl p-6">
+            <div className="flex items-start gap-3">
+              <svg
+                className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               <div>
-                <p className="text-slate-500 text-sm font-medium">Email</p>
-                <p className="text-slate-800 font-semibold">info@websitekelas.com</p>
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-slate-500 text-sm font-medium">Telepon</p>
-                <p className="text-slate-800 font-semibold">0812-3456-7890</p>
+                <p className="font-semibold text-slate-800 mb-2">
+                  Catatan Penting:
+                </p>
+                <ul className="text-slate-600 text-sm space-y-1">
+                  <li>• Setiap pelajaran di Lab wajib menggunakan wearpack</li>
+                  <li>• Hari Rabu: Datang lebih awal untuk kegiatan Opsih</li>
+                  <li>• Warna kuning menandakan waktu istirahat</li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
       </div>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

@@ -6,6 +6,7 @@ export interface Student {
   nisn: string;
   birth_date: string;
   jenis_kelamin: string;
+  photo_url?: string;
   created_at?: string;
 }
 

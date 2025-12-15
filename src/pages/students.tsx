@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
+import Footer from "@/components/Footer";
 import { supabase } from '@/lib/supabase';
+
 
 interface Student {
   id: string;
@@ -9,6 +11,8 @@ interface Student {
   class: string;
   nisn: string;
   birth_date: string;
+  jenis_kelamin: string;
+  photo_url?: string;
 }
 
 const Students: React.FC = () => {
@@ -17,6 +21,7 @@ const Students: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
 
+  
   const fetchStudents = async () => {
     try {
       const { data, error } = await supabase
@@ -37,7 +42,6 @@ const Students: React.FC = () => {
     fetchStudents();
   }, []);
 
-  // Filter students
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.nisn.includes(searchTerm);
@@ -45,10 +49,8 @@ const Students: React.FC = () => {
     return matchesSearch && matchesClass;
   });
 
-  // Get unique classes
   const classes = ['all', ...Array.from(new Set(students.map(s => s.class)))];
 
-  // Generate color for avatar based on name
   const getAvatarColor = (name: string) => {
     const colors = [
       'from-blue-400 to-blue-600',
@@ -64,7 +66,6 @@ const Students: React.FC = () => {
     return colors[index];
   };
 
-  // Get initials from name
   const getInitials = (name: string) => {
     const words = name.split(' ');
     if (words.length >= 2) {
@@ -89,7 +90,6 @@ const Students: React.FC = () => {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-8 py-16">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-slate-800 mb-4">Daftar Siswa</h1>
           <p className="text-xl text-slate-700">
@@ -97,10 +97,8 @@ const Students: React.FC = () => {
           </p>
         </div>
 
-        {/* Search and Filter Bar */}
         <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search Input */}
             <div className="flex-1">
               <div className="relative">
                 <svg 
@@ -121,7 +119,6 @@ const Students: React.FC = () => {
               </div>
             </div>
 
-            {/* Class Filter */}
             <div className="md:w-64">
               <select
                 value={selectedClass}
@@ -136,13 +133,11 @@ const Students: React.FC = () => {
             </div>
           </div>
 
-          {/* Results Count */}
           <div className="mt-4 text-slate-600">
             Menampilkan {filteredStudents.length} dari {students.length} siswa
           </div>
         </div>
 
-        {/* Students Grid */}
         {filteredStudents.length === 0 ? (
           <div className="bg-white rounded-3xl p-16 shadow-lg text-center">
             <svg className="w-20 h-20 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,32 +155,39 @@ const Students: React.FC = () => {
               >
                 {/* Photo Container */}
                 <div className="bg-slate-100 p-6 flex justify-center">
-                  <div 
-                    className={`w-40 h-48 bg-gradient-to-br ${getAvatarColor(student.name)} rounded-xl flex items-center justify-center shadow-lg`}
-                  >
-                    <span className="text-white text-4xl font-bold">
-                      {getInitials(student.name)}
-                    </span>
-                  </div>
+                  {student.photo_url ? (
+                    <div className="w-40 h-48 rounded-xl overflow-hidden shadow-lg">
+                      <img 
+                        src={student.photo_url} 
+                        alt={student.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div 
+                      className={`w-40 h-48 bg-gradient-to-br ${getAvatarColor(student.name)} rounded-xl flex items-center justify-center shadow-lg`}
+                    >
+                      <span className="text-white text-4xl font-bold">
+                        {getInitials(student.name)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Info Section */}
                 <div className="p-6 text-center border-t-4 border-slate-700">
-                  
-                  {/* Name */}
                   <h3 className="text-xl font-bold text-slate-800 mb-3">
                     {student.name}
                   </h3>
                   
-                  {/* Role/Position */}
-                  <p className="text-slate-600 text-sm mb-2">Siswa</p>
+                  <p className="text-slate-600 text-sm mb-2">
+                    {student.jenis_kelamin === 'Laki-laki' ? '👨 Siswa' : '👩 Siswi'}
+                  </p>
                   
-                  {/* Class */}
                   <p className="text-slate-700 font-medium mb-4">
                     Kelas {student.class}
                   </p>
 
-                  {/* Additional Info */}
                   <div className="space-y-2 pt-4 border-t border-slate-100 text-left">
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,19 +202,6 @@ const Students: React.FC = () => {
                       </svg>
                       <span className="text-sm text-slate-600 truncate">{student.email}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-sm text-slate-600">
-                        {new Date(student.birth_date).toLocaleDateString('id-ID', { 
-                          day: 'numeric', 
-                          month: 'long', 
-                          year: 'numeric' 
-                        })}
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -220,6 +209,9 @@ const Students: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
