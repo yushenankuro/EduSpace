@@ -16,6 +16,15 @@ interface Student {
   created_at?: string;
 }
 
+interface Teacher {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  photo_url?: string;
+  created_at?: string;
+}
+
 interface FormData {
   name: string;
   email: string;
@@ -52,6 +61,23 @@ const Dashboard: React.FC = () => {
   const [photoPreview, setPhotoPreview] = useState<string>("");
   const [uploading, setUploading] = useState(false);
 
+  // State untuk guru
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loadingTeacher, setLoadingTeacher] = useState(true);
+  const [showTeacherForm, setShowTeacherForm] = useState(false);
+  const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
+  const [teacherSearch, setTeacherSearch] = useState("");
+
+  const [teacherForm, setTeacherForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+  });
+
+const [teacherPhotoFile, setTeacherPhotoFile] = useState<File | null>(null);
+const [teacherPhotoPreview, setTeacherPhotoPreview] = useState("");
+const [uploadingTeacher, setUploadingTeacher] = useState(false);
+
   const checkAuth = async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
@@ -70,20 +96,41 @@ const Dashboard: React.FC = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("✅ Data berhasil dimuat:", data);
+      console.log("Data berhasil dimuat:", data);
       setStudents(data || []);
       setError("");
     } catch (err: any) {
-      console.error("❌ Error fetch:", err);
+      console.error("Error fetch:", err);
       setError("Gagal memuat data siswa: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchTeachers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("teachers")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setTeachers(data || []);
+    } catch (err) {
+      console.error("❌ Gagal fetch guru:", err);
+    } finally {
+      setLoadingTeacher(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+  }, []);
+
   useEffect(() => {
     checkAuth();
     fetchStudents();
+    fetchTeachers();
   }, []);
 
   const handleAdd = () => {
@@ -118,19 +165,44 @@ const Dashboard: React.FC = () => {
     setPhotoFile(null);
   };
 
+  const handleEditTeacher = (teacher: Teacher) => {
+    setEditingTeacherId(teacher.id);
+    setTeacherForm({
+      name: teacher.name,
+      email: teacher.email,
+      subject: teacher.subject,
+    });
+    setShowTeacherForm(true);
+  };
+
+  const handleDeleteTeacher = async (id: string) => {
+    if (!window.confirm("Yakin ingin menghapus guru ini?")) return;
+
+    try {
+      const { error } = await supabase.from("teachers").delete().eq("id", id);
+
+      if (error) throw error;
+
+      alert("Guru berhasil dihapus");
+      setTeachers(teachers.filter((t) => t.id !== id));
+    } catch (err: any) {
+      alert("Gagal hapus guru: " + err.message);
+    }
+  };
+
   // Handle file input change
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validasi file
       if (!file.type.startsWith("image/")) {
-        alert("❌ File harus berupa gambar!");
+        alert("File harus berupa gambar!");
         return;
       }
 
       if (file.size > 2 * 1024 * 1024) {
         // Max 2MB
-        alert("❌ Ukuran file maksimal 2MB!");
+        alert("Ukuran file maksimal 2MB!");
         return;
       }
 
@@ -170,10 +242,10 @@ const Dashboard: React.FC = () => {
         .from("student-photos")
         .getPublicUrl(filePath);
 
-      console.log("✅ Photo uploaded:", urlData.publicUrl);
+      console.log("Photo uploaded:", urlData.publicUrl);
       return urlData.publicUrl;
     } catch (error: any) {
-      console.error("❌ Upload error:", error);
+      console.error("Upload error:", error);
       throw new Error("Gagal upload foto: " + error.message);
     }
   };
@@ -196,12 +268,12 @@ const Dashboard: React.FC = () => {
         await supabase.storage.from("student-photos").remove([path]);
       }
 
-      console.log("✅ Siswa berhasil dihapus");
+      console.log("Siswa berhasil dihapus");
       setStudents(students.filter((s) => s.id !== id));
-      alert("✅ Siswa berhasil dihapus!");
+      alert("Siswa berhasil dihapus!");
     } catch (err: any) {
-      console.error("❌ Error delete:", err);
-      alert("❌ Gagal menghapus siswa: " + err.message);
+      console.error("Error delete:", err);
+      alert("Gagal menghapus siswa: " + err.message);
     }
   };
 
@@ -216,12 +288,12 @@ const Dashboard: React.FC = () => {
       !formData.class ||
       !formData.jenis_kelamin
     ) {
-      alert("❌ Semua field harus diisi!");
+      alert("Semua field harus diisi!");
       return;
     }
 
     if (formData.nisn.length !== 10) {
-      alert("❌ NISN harus 10 digit!");
+      alert("NISN harus 10 digit!");
       return;
     }
 
@@ -257,10 +329,10 @@ const Dashboard: React.FC = () => {
           .select();
 
         if (error) throw error;
-        console.log("✅ Update berhasil:", data);
-        alert("✅ Siswa berhasil diupdate!");
+        console.log("Update berhasil:", data);
+        alert("Siswa berhasil diupdate!");
       } else {
-        console.log("➕ Inserting new student:", studentData);
+        console.log("Inserting new student:", studentData);
 
         const { data, error } = await supabase
           .from("students")
@@ -268,8 +340,8 @@ const Dashboard: React.FC = () => {
           .select();
 
         if (error) throw error;
-        console.log("✅ Insert berhasil:", data);
-        alert("✅ Siswa berhasil ditambahkan!");
+        console.log("Insert berhasil:", data);
+        alert("Siswa berhasil ditambahkan!");
       }
 
       await fetchStudents();
@@ -287,12 +359,107 @@ const Dashboard: React.FC = () => {
       setPhotoPreview("");
       setEditingId(null);
     } catch (err: any) {
-      console.error("❌ Error submit:", err);
-      alert("❌ Gagal menyimpan data: " + err.message);
+      console.error("Error submit:", err);
+      alert("Gagal menyimpan data: " + err.message);
     } finally {
       setUploading(false);
     }
   };
+
+const handleTeacherSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!teacherForm.name || !teacherForm.email || !teacherForm.subject) {
+    alert("Semua field wajib diisi");
+    return;
+  }
+
+  try {
+    setUploadingTeacher(true);
+    let photoUrl = "";
+
+    if (teacherPhotoFile) {
+      photoUrl = await uploadTeacherPhoto(
+        teacherPhotoFile,
+        teacherForm.email
+      );
+    }
+
+    const payload = {
+      ...teacherForm,
+      photo_url: photoUrl || undefined,
+    };
+
+    if (editingTeacherId) {
+      await supabase
+        .from("teachers")
+        .update(payload)
+        .eq("id", editingTeacherId);
+      alert("Guru diupdate");
+    } else {
+      await supabase.from("teachers").insert([payload]);
+      alert("Guru ditambahkan");
+    }
+
+    setTeacherForm({ name: "", email: "", subject: "" });
+    setTeacherPhotoFile(null);
+    setTeacherPhotoPreview("");
+    setShowTeacherForm(false);
+    setEditingTeacherId(null);
+    fetchTeachers();
+  } catch (err: any) {
+    alert("Gagal simpan guru: " + err.message);
+  } finally {
+    setUploadingTeacher(false);
+  }
+};
+
+  const handleTeacherPhotoChange = (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("File harus berupa gambar");
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert("Format: JPG, PNG (Max 2MB)");
+    return;
+  }
+
+  setTeacherPhotoFile(file);
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    setTeacherPhotoPreview(reader.result as string);
+  };
+  reader.readAsDataURL(file);
+};
+
+const uploadTeacherPhoto = async (
+  file: File,
+  email: string
+): Promise<string> => {
+  const ext = file.name.split(".").pop();
+  const fileName = `${email}_${Date.now()}.${ext}`;
+  const filePath = `photos/${fileName}`;
+
+  const { error } = await supabase.storage
+    .from("teacher-photos")
+    .upload(filePath, file);
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from("teacher-photos")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
@@ -309,6 +476,12 @@ const Dashboard: React.FC = () => {
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.nisn.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.class.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredTeachers = teachers.filter(
+    (t) =>
+      t.name.toLowerCase().includes(teacherSearch.toLowerCase()) ||
+      t.subject.toLowerCase().includes(teacherSearch.toLowerCase())
   );
 
   if (loading) {
@@ -333,17 +506,20 @@ const Dashboard: React.FC = () => {
           <h1 className="text-4xl font-bold text-slate-800 mb-2">
             Dashboard Admin
           </h1>
-          <p className="text-slate-700 text-lg">Selamat datang, <b>{userEmail}</b>!</p>
+          <p className="text-slate-700 text-lg">
+            Selamat datang, <b>{userEmail}</b>!
+          </p>
         </div>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-6">
-            ❌ {error}
+            {error}
           </div>
         )}
 
-        <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="mt-20 bg-white rounded-3xl shadow-lg overflow-hidden">
+          {/* HEADER */}
+          <div className="px-6 py-6 border-b border-slate-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800">
                 Daftar Siswa
@@ -373,9 +549,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         {showForm && (
-          <div className="bg-white rounded-3xl p-8 shadow-lg mb-6">
+          <div className="px-6 py-6 bg-slate-50 border-b">
             <h3 className="text-2xl font-bold text-slate-800 mb-6">
-              {editingId ? "✏️ Edit Siswa" : "➕ Tambah Siswa Baru"}
+              {editingId ? "Edit Siswa" : "Tambah Siswa Baru"}
             </h3>
             <form onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
@@ -448,12 +624,12 @@ const Dashboard: React.FC = () => {
                       </label>
 
                       <p className="text-sm text-slate-500 mt-2">
-                        📌 Format: JPG, PNG (Max 2MB)
+                        Format: JPG, PNG (Max 2MB)
                       </p>
 
                       {photoFile && (
                         <p className="text-sm text-green-600 mt-2">
-                          ✅ {photoFile.name} dipilih
+                          {photoFile.name} dipilih
                         </p>
                       )}
                     </div>
@@ -623,7 +799,7 @@ const Dashboard: React.FC = () => {
                   }}
                   className="flex-1 bg-slate-400 text-white px-8 py-3 rounded-full hover:bg-slate-500 transition-colors font-medium"
                 >
-                  ✖️ Batal
+                  Batal
                 </button>
               </div>
             </form>
@@ -791,6 +967,161 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
           )}
+        </div>
+
+        {/* ===================== DATA GURU ===================== */}
+        <div className="mt-20 bg-white rounded-3xl shadow-lg overflow-hidden">
+          {/* HEADER */}
+          <div className="px-6 py-6 border-b border-slate-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800">Data Guru</h2>
+              <p className="text-slate-600 mt-1">
+                Total: {teachers.length} guru
+              </p>
+            </div>
+
+            <div className="flex gap-3 w-full md:w-auto">
+              <input
+                type="text"
+                placeholder="Cari guru / mapel..."
+                value={teacherSearch}
+                onChange={(e) => setTeacherSearch(e.target.value)}
+                className="flex-1 md:w-64 px-4 py-2 border border-slate-300 rounded-full focus:ring-2 focus:ring-indigo-400 outline-none"
+              />
+
+              <button
+                onClick={() => {
+                  setShowTeacherForm(true);
+                  setEditingTeacherId(null);
+                  setTeacherForm({ name: "", email: "", subject: "" });
+                }}
+                className="bg-indigo-500 text-white px-6 py-3 rounded-full hover:bg-indigo-600 transition-colors shadow-md font-medium"
+              >
+                + Tambah Guru
+              </button>
+            </div>
+          </div>
+
+          {/* FORM */}
+          {showTeacherForm && (
+            <div className="px-6 py-6 bg-slate-50 border-b">
+              <h3 className="text-xl font-bold mb-4">
+                {editingTeacherId ? "Edit Guru" : "Tambah Guru"}
+              </h3>
+
+              <form
+                onSubmit={handleTeacherSubmit}
+                className="grid md:grid-cols-3 gap-4"
+              >                
+                <input
+                  type="text"
+                  placeholder="Nama Guru"
+                  value={teacherForm.name}
+                  onChange={(e) =>
+                    setTeacherForm({ ...teacherForm, name: e.target.value })
+                  }
+                  className="px-4 py-3 border rounded-xl"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Email Guru"
+                  value={teacherForm.email}
+                  onChange={(e) =>
+                    setTeacherForm({ ...teacherForm, email: e.target.value })
+                  }
+                  className="px-4 py-3 border rounded-xl"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Mata Pelajaran"
+                  value={teacherForm.subject}
+                  onChange={(e) =>
+                    setTeacherForm({ ...teacherForm, subject: e.target.value })
+                  }
+                  className="px-4 py-3 border rounded-xl"
+                  required
+                />
+
+                <div className="md:col-span-3 flex gap-3">
+                  <button className="bg-indigo-500 text-white px-6 py-3 rounded-full">
+                    Simpan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowTeacherForm(false)}
+                    className="bg-slate-400 text-white px-6 py-3 rounded-full"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* TABLE */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-700">
+                <tr>
+                  <th className="px-6 py-4 text-left text-white">No</th>
+                  <th className="px-6 py-4 text-left text-white">Nama</th>
+                  <th className="px-6 py-4 text-left text-white">Email</th>
+                  <th className="px-6 py-4 text-left text-white">Mapel</th>
+                  <th className="px-6 py-4 text-center text-white">Aksi</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y">
+                {loadingTeacher ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center">
+                      ⏳ Memuat guru...
+                    </td>
+                  </tr>
+                ) : filteredTeachers.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-10 text-center text-slate-500"
+                    >
+                      👨‍🏫 Data guru kosong
+                    </td>
+                  </tr>
+                ) : (
+                  filteredTeachers.map((t, i) => (
+                    <tr key={t.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4">{i + 1}</td>
+                      <td className="px-6 py-4 font-medium">{t.name}</td>
+                      <td className="px-6 py-4">{t.email}</td>
+                      <td className="px-6 py-4">
+                        <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                          {t.subject}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleEditTeacher(t)}
+                            className="bg-amber-500 text-white px-4 py-2 rounded-lg"
+                          >
+                            ✏️Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTeacher(t.id)}
+                            className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                          >
+                            🗑️Hapus
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

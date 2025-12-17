@@ -67,6 +67,14 @@ const Navbar: React.FC = () => {
               >
                 Siswa
               </Link>
+              <Link 
+                href="/subject" 
+                className={`text-lg font-medium hover:text-white transition-colors ${
+                  isActive('/subject') ? 'text-white' : 'text-gray-300'
+                }`}
+              >
+                Mapel
+              </Link>
 
               {isLoggedIn ? (
                 <>
