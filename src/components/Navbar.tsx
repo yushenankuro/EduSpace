@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
                           Daftar
                         </Link>
                         <Link 
-                          href="/grades"
+                          href="/dashboard/grades"
                           className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
                             isActive('/dashboard/grades') ? 'text-white bg-slate-600' : 'text-gray-300'
                           }`}

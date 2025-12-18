@@ -49,16 +49,16 @@ const SubjectPage: React.FC = () => {
 
       if (error) throw error;
       setTeachers(data || []);
-      
+
       // Transform data guru menjadi mata pelajaran
       const transformedSubjects: Subject[] = [];
-      
+
       data?.forEach((teacher) => {
         teacher.subjects?.forEach((subjectName: string, index: number) => {
           const existingSubjectIndex = transformedSubjects.findIndex(
             s => s.name.toLowerCase() === subjectName.toLowerCase()
           );
-          
+
           if (existingSubjectIndex === -1) {
             // Jika mata pelajaran belum ada, tambahkan baru
             transformedSubjects.push({
@@ -79,7 +79,7 @@ const SubjectPage: React.FC = () => {
           }
         });
       });
-      
+
       setSubjects(transformedSubjects);
     } catch (err: any) {
       console.error('Error fetching teachers:', err);
@@ -152,7 +152,7 @@ const SubjectPage: React.FC = () => {
       'UI/UX Design': '🎨',
       'Bahasa Inggris Bisnis': '💼',
     };
-    
+
     return iconMap[subjectName] || '📚';
   };
 
@@ -179,7 +179,7 @@ const SubjectPage: React.FC = () => {
       'Pendidikan Agama': 'from-violet-400 to-violet-600',
       'Prakarya': 'from-yellow-400 to-yellow-600',
     };
-    
+
     const colors = [
       'from-blue-400 to-blue-600',
       'from-green-400 to-green-600',
@@ -197,7 +197,7 @@ const SubjectPage: React.FC = () => {
       'from-rose-400 to-rose-600',
       'from-yellow-400 to-yellow-600',
     ];
-    
+
     return colorMap[subjectName] || colors[Math.floor(Math.random() * colors.length)];
   };
 
@@ -244,12 +244,12 @@ const SubjectPage: React.FC = () => {
         { id: 21, title: 'Genetika', type: 'video', description: 'Konsep dasar genetika', url: 'https://youtube.com/watch?v=genetika' }
       ]
     };
-    
+
     // Jika ada materi khusus untuk mata pelajaran, gunakan itu
     if (materialsMap[subjectName]) {
       return materialsMap[subjectName];
     }
-    
+
     // Default materials untuk mata pelajaran lain
     return [
       {
@@ -270,7 +270,7 @@ const SubjectPage: React.FC = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'pdf': return '📄';
       case 'video': return '🎥';
       case 'doc': return '📝';
@@ -280,7 +280,7 @@ const SubjectPage: React.FC = () => {
   };
 
   const getTypeColor = (type: string) => {
-    switch(type) {
+    switch (type) {
       case 'pdf': return 'bg-red-100 text-red-700';
       case 'video': return 'bg-purple-100 text-purple-700';
       case 'doc': return 'bg-blue-100 text-blue-700';
@@ -311,7 +311,7 @@ const SubjectPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
@@ -324,26 +324,28 @@ const SubjectPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
-          <div className="relative">
-            <svg 
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Cari mata pelajaran atau guru..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all"
-            />
-          </div>
-        </div>
+{/* Search Bar - Hide ketika melihat detail materi */}
+{selectedSubject === null && (
+  <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
+    <div className="relative">
+      <svg 
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" 
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Cari mata pelajaran atau guru..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all"
+      />
+    </div>
+  </div>
+)}
 
         {/* Subjects Grid */}
         {selectedSubject === null ? (
@@ -360,14 +362,14 @@ const SubjectPage: React.FC = () => {
                     <div className="absolute top-4 right-4">
                       <div className="text-3xl">{subject.icon}</div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 mt-4">
                       {/* Foto Guru */}
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-white/20 border-2 border-white/30 flex items-center justify-center">
                         {subject.teacherPhoto ? (
-                          <img 
-                            src={subject.teacherPhoto} 
-                            alt={subject.teacher} 
+                          <img
+                            src={subject.teacherPhoto}
+                            alt={subject.teacher}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -376,7 +378,7 @@ const SubjectPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div>
                         <h3 className="text-2xl font-bold mb-1">{subject.name}</h3>
                         <p className="text-white/90 text-sm">Pengajar: {subject.teacher}</p>
@@ -394,7 +396,7 @@ const SubjectPage: React.FC = () => {
                         <span className="text-sm font-medium">{subject.materials.length} Materi</span>
                       </div>
                     </div>
-                    
+
                     <button className="w-full bg-slate-700 text-white py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium flex items-center justify-center gap-2">
                       <span>Lihat Materi</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,7 +407,7 @@ const SubjectPage: React.FC = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Jika tidak ada data */}
             {filteredSubjects.length === 0 && subjects.length === 0 && (
               <div className="bg-white rounded-3xl p-16 shadow-lg text-center">
@@ -441,9 +443,9 @@ const SubjectPage: React.FC = () => {
                       {/* Foto Guru Besar */}
                       <div className="w-32 h-32 rounded-full overflow-hidden bg-white/20 border-4 border-white/30 flex items-center justify-center">
                         {subject.teacherPhoto ? (
-                          <img 
-                            src={subject.teacherPhoto} 
-                            alt={subject.teacher} 
+                          <img
+                            src={subject.teacherPhoto}
+                            alt={subject.teacher}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -452,7 +454,7 @@ const SubjectPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex-1 text-center md:text-left">
                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                           <div className="text-5xl">{subject.icon}</div>
@@ -474,7 +476,7 @@ const SubjectPage: React.FC = () => {
                         <div className="flex items-start gap-4">
                           {/* Icon */}
                           <div className="text-4xl">{getTypeIcon(material.type)}</div>
-                          
+
                           {/* Content */}
                           <div className="flex-1">
                             <div className="flex items-start justify-between mb-2">
@@ -484,7 +486,7 @@ const SubjectPage: React.FC = () => {
                               </span>
                             </div>
                             <p className="text-slate-600 mb-4">{material.description}</p>
-                            
+
                             {/* Action Buttons */}
                             <div className="flex gap-3">
                               <a
