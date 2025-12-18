@@ -444,9 +444,9 @@ const NilaiRaporPage: React.FC = () => {
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold">No</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold">Mata Pelajaran</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold">Tugas (30%)</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold">UTS (30%)</th>
-                      <th className="px-6 py-4 text-center text-sm font-semibold">UAS (40%)</th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold">Tugas</th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold">UTS</th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold">UAS</th>
                       <th className="px-6 py-4 text-center text-sm font-semibold">Nilai Akhir</th>
                       <th className="px-6 py-4 text-center text-sm font-semibold">Predikat</th>
                     </tr>
