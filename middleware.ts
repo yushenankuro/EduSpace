@@ -5,6 +5,9 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const { pathname } = req.nextUrl;
 
+  console.log('cek');
+  
+
   // Halaman yang perlu dilindungi
   const protectedRoutes = ['/dashboard', '/grades'];
 
@@ -33,8 +36,8 @@ export async function middleware(req: NextRequest) {
       return res;
     } catch (error) {
       // Redirect ke halaman login jika tidak terautentikasi
-      const loginUrl = new URL('/auth/login', req.url);
-      loginUrl.searchParams.set('redirect', pathname);
+      const loginUrl = new URL('/login', req.url);
+      // loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
     }
   }

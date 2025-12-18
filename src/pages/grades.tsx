@@ -58,7 +58,7 @@ const NilaiRaporPage: React.FC = () => {
         
         if (!session) {
           // Redirect ke login jika belum login
-          router.push('/login?redirect=/grades');
+          router.push('/login');
           return;
         }
         
