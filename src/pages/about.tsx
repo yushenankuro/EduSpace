@@ -59,6 +59,7 @@ const About: React.FC = () => {
     {
       day: "Monday",
       dayIndo: "Senin",
+      color: "from-red-400 to-red-600",
       subjects: [
         { name: "Mapil", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -70,6 +71,7 @@ const About: React.FC = () => {
     {
       day: "Tuesday",
       dayIndo: "Selasa",
+      color: "from-orange-400 to-orange-600",
       subjects: [
         { name: "P.K.K", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -82,6 +84,7 @@ const About: React.FC = () => {
     {
       day: "Wednesday",
       dayIndo: "Rabu",
+      color: "from-green-400 to-green-600",
       subjects: [
         { name: "Opsih", time: "08.00-09.20" },
         { name: "Basis Data", time: "09.20-11.00" },
@@ -93,6 +96,7 @@ const About: React.FC = () => {
     {
       day: "Thursday",
       dayIndo: "Kamis",
+      color: "from-blue-400 to-blue-600",
       subjects: [
         { name: "Pemrograman Desktop", time: "08.00-10.00" },
         { name: "Bahasa Inggris", time: "10.00-11.00" },
@@ -103,6 +107,7 @@ const About: React.FC = () => {
     {
       day: "Friday",
       dayIndo: "Jumat",
+      color: "from-purple-400 to-purple-600",
       subjects: [
         { name: "Mulok", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -112,24 +117,96 @@ const About: React.FC = () => {
     },
   ];
 
+  // Class stats
+  const classStats = [
+    { icon: "👥", label: "Total Siswa", value: "32", color: "bg-blue-500" },
+    { icon: "👨", label: "Laki-laki", value: "18", color: "bg-cyan-500" },
+    { icon: "👩", label: "Perempuan", value: "14", color: "bg-pink-500" },
+    { icon: "👨‍🏫", label: "Guru Pengajar", value: "12+", color: "bg-purple-500" },
+  ];
+
+  // Class achievements
+  const achievements = [
+    {
+      icon: "🏆",
+      title: "Juara 1 Lomba Web Design",
+      year: "2024",
+      desc: "Tingkat Provinsi"
+    },
+    {
+      icon: "🥇",
+      title: "Best Class Award",
+      year: "2023",
+      desc: "Prestasi Terbaik Sekolah"
+    },
+    {
+      icon: "💻",
+      title: "Hackathon Champion",
+      year: "2024",
+      desc: "Regional Competition"
+    },
+    {
+      icon: "📚",
+      title: "Academic Excellence",
+      year: "2024",
+      desc: "Rata-rata Nilai Tertinggi"
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
 
-      {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-8 py-16">
-        {/* Class Gallery - Carousel */}
-        <div className="mb-8">
+      {/* Hero Banner */}
+      <div className="max-w-6xl mx-auto px-8 pt-12 pb-8">
+        <div className="bg-gradient-to-r from-teal-500 via-blue-500 to-purple-600 rounded-3xl p-12 shadow-2xl text-white text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4">XI RPL 1 🚀</h1>
+          <p className="text-2xl mb-6 opacity-90">Rekayasa Perangkat Lunak</p>
+          <p className="text-lg opacity-80 max-w-2xl mx-auto">
+            Kelas unggulan dengan fokus pada pengembangan software, web development, dan teknologi terkini. 
+            Bersama membangun masa depan digital Indonesia!
+          </p>
+          
+          {/* Class Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+            {classStats.map((stat, idx) => (
+              <div key={idx} className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 hover:bg-white/30 transition-all">
+                <div className="text-4xl mb-2">{stat.icon}</div>
+                <div className="text-3xl font-bold">{stat.value}</div>
+                <div className="text-sm opacity-90">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Class Achievements */}
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-slate-800 text-center mb-8">
+            🏆 Prestasi Kelas
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {achievements.map((achievement, idx) => (
+              <div key={idx} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all hover:-translate-y-2">
+                <div className="text-5xl mb-3">{achievement.icon}</div>
+                <h3 className="font-bold text-slate-800 mb-2">{achievement.title}</h3>
+                <p className="text-teal-600 font-semibold mb-1">{achievement.year}</p>
+                <p className="text-sm text-slate-600">{achievement.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Gallery Section */}
+        <div className="mb-12">
           <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
-            Galeri Kenangan Kelas
+            📸 Galeri Kenangan Kelas
           </h2>
 
           <div className="bg-white rounded-3xl p-8 shadow-lg">
-            {/* Carousel Container */}
             <div className="relative">
               {/* Main Image Display */}
-              <div className="relative h-[500px] rounded-2xl overflow-hidden bg-slate-100 mb-6">
-                {/* Placeholder gradient - akan diganti dengan foto asli */}
+              <div className="relative h-[500px] rounded-2xl overflow-hidden bg-slate-100 mb-6 group">
+                {/* Placeholder gradient */}
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-400 via-blue-500 to-purple-600 flex items-center justify-center">
                   <div className="text-center text-white">
                     <svg
@@ -145,55 +222,26 @@ const About: React.FC = () => {
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <p className="text-xl font-semibold">
-                      Placeholder: Simpan foto di /public/images/gallery/
-                    </p>
+                    <p className="text-xl font-semibold mb-2">{galleryPhotos[currentSlide].title}</p>
+                    <p className="text-sm opacity-80">Simpan foto di /public/images/gallery/</p>
                   </div>
                 </div>
-
-                {/* Image would be here */}
-                {/* <Image 
-                  src={galleryPhotos[currentSlide].image} 
-                  alt={galleryPhotos[currentSlide].title}
-                  fill
-                  className="object-cover"
-                /> */}
 
                 {/* Navigation Arrows */}
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center hover:scale-110"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-12 h-12 rounded-full shadow-lg transition-all flex items-center justify-center hover:scale-110"
                 >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
 
@@ -214,7 +262,7 @@ const About: React.FC = () => {
               </div>
 
               {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 mt-6">
+              <div className="flex justify-center gap-2">
                 {galleryPhotos.map((_, index) => (
                   <button
                     key={index}
@@ -231,132 +279,71 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* ================= STRUKTUR KELAS ================= */}
-        <div className="rounded-3xl p-10 mb-8">
+        {/* Class Structure */}
+        <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-10 mb-12 shadow-2xl">
           <h2 className="text-3xl font-bold text-white text-center mb-12">
-            Struktur Kelas
+            👔 Struktur Organisasi Kelas
           </h2>
 
           <div className="max-w-4xl mx-auto flex flex-col items-center">
             {/* WALI KELAS */}
-            <p className="text-white text-sm mb-2">Wali Kelas</p>
-            <div className="bg-white rounded-full px-6 py-3 shadow-lg">
-              <p className="font-bold text-slate-800">Latifah S.Pd</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 mb-3 border-2 border-white/30">
+              <p className="text-white text-sm mb-1 text-center">Wali Kelas</p>
+              <p className="font-bold text-white text-xl">Latifah S.Pd</p>
             </div>
 
-            <Image
-              src="/images/LineVertikal.svg"
-              alt=""
-              width={20}
-              height={40}
-            />
+            <div className="w-1 h-12 bg-white/50"></div>
+            <div className="w-72 h-1 bg-white/50"></div>
 
-            <Image
-              src="/images/LineHorizontal.svg"
-              alt=""
-              width={300}
-              height={20}
-            />
-
-            <div className="flex gap-[260px] -mt-2">
-              <Image
-                src="/images/LineKananKiri.svg"
-                alt=""
-                width={20}
-                height={30}
-              />
-              <Image
-                src="/images/LineKananKiri.svg"
-                alt=""
-                width={20}
-                height={30}
-              />
-            </div>
-
-            <div className="flex gap-[260px] -mt-3">
-              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
-              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+            <div className="flex gap-[260px]">
+              <div className="w-1 h-8 bg-white/50"></div>
+              <div className="w-1 h-8 bg-white/50"></div>
             </div>
 
             {/* KETUA & WAKIL */}
-            <div className="flex gap-40 mt-2">
+            <div className="flex gap-40">
               <div className="flex flex-col items-center">
-                <p className="text-white text-sm mb-2">Ketua Kelas</p>
-                <div className="bg-white rounded-full px-6 py-3 shadow-lg">
-                  Aziz
+                <div className="bg-yellow-400 rounded-2xl px-8 py-4 shadow-xl border-4 border-yellow-300">
+                  <p className="text-slate-700 text-sm mb-1 text-center">Ketua Kelas</p>
+                  <p className="font-bold text-slate-900 text-lg">Aziz</p>
                 </div>
-                <Image
-                  src="/images/LineVertikal.svg"
-                  alt=""
-                  width={20}
-                  height={40}
-                />
+                <div className="w-1 h-12 bg-white/50 mt-3"></div>
               </div>
 
               <div className="flex flex-col items-center">
-                <p className="text-white text-sm mb-2">Wakil Ketua</p>
-                <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
-                  Desy
+                <div className="bg-yellow-300 rounded-2xl px-8 py-4 shadow-xl border-4 border-yellow-200">
+                  <p className="text-slate-700 text-sm mb-1 text-center">Wakil Ketua</p>
+                  <p className="font-bold text-slate-900 text-lg">Desy</p>
                 </div>
-                <Image
-                  src="/images/LineVertikal.svg"
-                  alt=""
-                  width={20}
-                  height={40}
-                />
+                <div className="w-1 h-12 bg-white/50 mt-3"></div>
               </div>
             </div>
 
-            <Image
-              src="/images/LineHorizontal.svg"
-              alt=""
-              width={300}
-              height={20}
-              className="my-4"
-            />
+            <div className="w-72 h-1 bg-white/50"></div>
 
-            <div className="flex gap-[260px] -mt-2">
-              <Image
-                src="/images/LineKananKiri.svg"
-                alt=""
-                width={20}
-                height={30}
-              />
-              <Image
-                src="/images/LineKananKiri.svg"
-                alt=""
-                width={20}
-                height={30}
-              />
-            </div>
-
-            <div className="flex gap-[260px] -mt-3">
-              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
-              <Image src="/images/Circle.svg" alt="" width={20} height={20} />
+            <div className="flex gap-[260px]">
+              <div className="w-1 h-8 bg-white/50"></div>
+              <div className="w-1 h-8 bg-white/50"></div>
             </div>
 
             {/* SEKRETARIS & BENDAHARA */}
-            <div className="flex gap-40 mt-2">
+            <div className="flex gap-40">
               <div className="flex flex-col items-center">
-                <p className="text-white text-sm mb-2">Sekretaris</p>
-                <div className="space-y-2">
-                  <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
-                    Ling
-                  </div>
-                  <div className="bg-white rounded-full px-6 py-3 shadow-lg font-semibold">
-                    Vina
+                <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-xl mb-3">
+                  <p className="text-slate-700 text-sm mb-1 text-center">Sekretaris</p>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-slate-900 text-center">Ling</p>
+                    <p className="font-semibold text-slate-900 text-center">Vina</p>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col items-center">
-                <p className="text-white text-sm mb-2">Bendahara</p>
-                <div className="space-y-2">
-                  <div className="bg-white rounded-full px-6 py-3 shadow-lg">
-                    Fatah
-                  </div>
-                  <div className="bg-white rounded-full px-6 py-3 shadow-lg">
-                    Afif
+                <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-xl mb-3">
+                  <p className="text-slate-700 text-sm mb-1 text-center">Bendahara</p>
+                  <div className="space-y-2">
+                    <p className="font-semibold text-slate-900 text-center">Fatah</p>
+                    <p className="font-semibold text-slate-900 text-center">Afif</p>
                   </div>
                 </div>
               </div>
@@ -365,46 +352,48 @@ const About: React.FC = () => {
         </div>
 
         {/* Schedule */}
-        <div className="bg-white rounded-3xl p-10 shadow-lg mb-8">
+        <div className="bg-white rounded-3xl p-10 shadow-lg mb-12">
           <h2 className="text-3xl font-bold text-slate-800 text-center mb-10">
-            Jadwal Pelajaran
+            📅 Jadwal Pelajaran Mingguan
           </h2>
 
-          {/* Tab-like schedule display */}
           <div className="grid lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-6">
             {weeklySchedule.map((day, index) => (
               <div
                 key={index}
-                className="border-2 border-slate-300 rounded-2xl p-4 bg-slate-50"
+                className="rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
               >
-                {/* Day Header */}
-                <div className="text-center mb-6 pb-4 border-b-2 border-white/30">
-                  <h3 className="text-2xl font-bold text-black">
-                    {day.dayIndo}
-                  </h3>
+                {/* Day Header with gradient */}
+                <div className={`bg-gradient-to-r ${day.color} text-white text-center py-4`}>
+                  <h3 className="text-2xl font-bold">{day.dayIndo}</h3>
+                  <p className="text-sm opacity-90">{day.day}</p>
                 </div>
 
                 {/* Subjects List */}
-                <div className="space-y-3">
+                <div className="p-4 bg-slate-50 space-y-2">
                   {day.subjects.map((subject, idx) => (
                     <div
                       key={idx}
                       className={`${
                         subject.name === "Istirahat"
-                          ? "bg-amber-100 border-l-4 border-amber-500"
-                          : "bg-white"
-                      } rounded-lg p-3`}
+                          ? "bg-gradient-to-r from-amber-100 to-orange-100 border-l-4 border-amber-500"
+                          : "bg-white border-l-4 border-slate-200"
+                      } rounded-lg p-3 hover:shadow-md transition-all`}
                     >
                       <p
-                        className={`font-semibold ${
+                        className={`font-semibold text-sm ${
                           subject.name === "Istirahat"
                             ? "text-amber-800"
                             : "text-slate-800"
                         }`}
                       >
+                        {subject.name === "Istirahat" ? "☕ " : "📚 "}
                         {subject.name}
                       </p>
-                      <p className="text-sm text-slate-600 mt-1">
+                      <p className="text-xs text-slate-600 mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         {subject.time}
                       </p>
                     </div>
@@ -415,7 +404,7 @@ const About: React.FC = () => {
           </div>
 
           {/* Notes */}
-          <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 rounded-2xl p-6">
+          <div className="mt-8 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 rounded-2xl p-6">
             <div className="flex items-start gap-3">
               <svg
                 className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1"
@@ -432,19 +421,41 @@ const About: React.FC = () => {
               </svg>
               <div>
                 <p className="font-semibold text-slate-800 mb-2">
-                  Catatan Penting:
+                  ⚠️ Catatan Penting:
                 </p>
                 <ul className="text-slate-600 text-sm space-y-1">
                   <li>• Setiap pelajaran di Lab wajib menggunakan wearpack</li>
                   <li>• Hari Rabu: Datang lebih awal untuk kegiatan Opsih</li>
                   <li>• Warna kuning menandakan waktu istirahat</li>
+                  <li>• Jangan lupa bawa laptop untuk mata pelajaran praktik</li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Class Motto / Vision */}
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 rounded-3xl p-12 shadow-2xl text-white text-center">
+          <div className="text-6xl mb-4">💡</div>
+          <h2 className="text-3xl font-bold mb-4">Visi Kelas</h2>
+          <p className="text-xl max-w-3xl mx-auto italic">
+            "Menjadi kelas yang unggul dalam teknologi, kreatif dalam inovasi, dan solid dalam kekeluargaan. 
+            Bersama membangun masa depan digital Indonesia yang lebih baik!"
+          </p>
+          <div className="mt-8 flex justify-center gap-6 flex-wrap">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+              <p className="font-bold">🎯 Inovatif</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+              <p className="font-bold">💪 Kolaboratif</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3">
+              <p className="font-bold">🚀 Progresif</p>
+            </div>
+          </div>
+        </div>
       </div>
-      {/* Footer */}
+
       <Footer />
     </div>
   );

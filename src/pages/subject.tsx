@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from 'next/router';
 
 interface Material {
   id: number;
@@ -32,11 +33,24 @@ interface Teacher {
 }
 
 const SubjectPage: React.FC = () => {
+  const router = useRouter();
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [downloading, setDownloading] = useState<number | null>(null);
+
+  // Check auth
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   // Fetch data guru dari Supabase
   const fetchTeachers = async () => {
@@ -49,18 +63,17 @@ const SubjectPage: React.FC = () => {
 
       if (error) throw error;
       setTeachers(data || []);
-
+      
       // Transform data guru menjadi mata pelajaran
       const transformedSubjects: Subject[] = [];
-
+      
       data?.forEach((teacher) => {
         teacher.subjects?.forEach((subjectName: string, index: number) => {
           const existingSubjectIndex = transformedSubjects.findIndex(
             s => s.name.toLowerCase() === subjectName.toLowerCase()
           );
-
+          
           if (existingSubjectIndex === -1) {
-            // Jika mata pelajaran belum ada, tambahkan baru
             transformedSubjects.push({
               id: transformedSubjects.length + 1,
               name: subjectName,
@@ -71,7 +84,6 @@ const SubjectPage: React.FC = () => {
               materials: getDefaultMaterials(subjectName)
             });
           } else {
-            // Jika mata pelajaran sudah ada, tambahkan guru lain yang mengajar mapel yang sama
             const existingSubject = transformedSubjects[existingSubjectIndex];
             if (!existingSubject.teacher.includes(teacher.name)) {
               existingSubject.teacher = `${existingSubject.teacher}, ${teacher.name}`;
@@ -79,7 +91,7 @@ const SubjectPage: React.FC = () => {
           }
         });
       });
-
+      
       setSubjects(transformedSubjects);
     } catch (err: any) {
       console.error('Error fetching teachers:', err);
@@ -92,19 +104,127 @@ const SubjectPage: React.FC = () => {
     fetchTeachers();
   }, []);
 
-  // Fungsi untuk menentukan icon berdasarkan nama mata pelajaran
+  // Helper: Extract Google Drive File ID
+  const extractGoogleDriveId = (url: string): string | null => {
+    // Pattern 1: /d/FILE_ID/
+    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1) return match1[1];
+    
+    // Pattern 2: id=FILE_ID
+    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match2) return match2[1];
+    
+    return null;
+  };
+
+  // Smart Download Handler
+  const handleDownload = async (material: Material) => {
+    setDownloading(material.id);
+
+    try {
+      // 1. Handle YouTube Videos
+      if (material.type === 'video' && 
+          (material.url.includes('youtube.com') || material.url.includes('youtu.be'))) {
+        alert('⚠️ Video YouTube tidak bisa didownload langsung.\n\nSilakan:\n• Tonton online dengan klik "Lihat Materi"\n• Gunakan aplikasi YouTube downloader');
+        setDownloading(null);
+        return;
+      }
+
+      // 2. Handle Google Drive Files
+      if (material.url.includes('drive.google.com')) {
+        const fileId = extractGoogleDriveId(material.url);
+        
+        if (fileId) {
+          // Open Google Drive direct download link
+          const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+          window.open(downloadUrl, '_blank');
+          
+          setTimeout(() => {
+            alert('✅ Download dimulai!\n\nJika download tidak otomatis, klik kanan > Save As pada tab yang terbuka.');
+          }, 500);
+          
+          setDownloading(null);
+          return;
+        }
+      }
+
+      // 3. Handle Direct File URLs (from your server/storage)
+      // Check if it's a relative URL (your own server)
+      if (material.url.startsWith('/materials/') || material.url.startsWith('/')) {
+        // Just open in new tab for now (browser will handle download)
+        const link = document.createElement('a');
+        link.href = material.url;
+        link.download = `${material.title}.${material.type}`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setTimeout(() => {
+          alert('✅ Download dimulai!');
+        }, 500);
+        
+        setDownloading(null);
+        return;
+      }
+
+      // 4. Handle External URLs with CORS support
+      try {
+        const response = await fetch(material.url, {
+          mode: 'cors',
+        });
+
+        if (!response.ok) {
+          throw new Error('File tidak dapat diakses');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Determine file extension
+        const extension = material.type === 'pdf' ? 'pdf' : 
+                         material.type === 'doc' ? 'docx' : 
+                         material.type === 'video' ? 'mp4' : 
+                         'file';
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${material.title}.${extension}`;
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        alert('✅ File berhasil didownload!');
+      } catch (fetchError) {
+        // If fetch fails (CORS issue, etc), fallback to opening in new tab
+        console.warn('Fetch failed, using fallback method:', fetchError);
+        window.open(material.url, '_blank');
+        alert('ℹ️ File dibuka di tab baru.\n\nSilakan klik kanan > Save As untuk download.');
+      }
+
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('❌ Gagal mendownload file.\n\nSilakan coba lagi atau hubungi admin.');
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  // View/Open Material Handler
+  const handleViewMaterial = (material: Material) => {
+    // Open in new tab
+    window.open(material.url, '_blank');
+  };
+
   const getSubjectIcon = (subjectName: string): string => {
     const iconMap: { [key: string]: string } = {
       'Matematika': '🔢',
-      'Fisika': '⚛️',
-      'Kimia': '🧪',
-      'Biologi': '🧬',
       'Bahasa Indonesia': '🇮🇩',
       'Bahasa Inggris': '🇬🇧',
       'Sejarah': '📜',
-      'Geografi': '🌍',
-      'Ekonomi': '💰',
-      'Sosiologi': '👥',
       'Pemrograman Web': '💻',
       'Pemrograman Mobile': '📱',
       'Pemrograman Desktop': '🖥️',
@@ -113,56 +233,17 @@ const SubjectPage: React.FC = () => {
       'Seni Budaya': '🎨',
       'PKN': '⚖️',
       'Pendidikan Agama': '🕌',
-      'Prakarya': '🛠️',
-      'Statistika': '📊',
-      'Robotika': '🤖',
-      'AI': '🧠',
-      'Machine Learning': '🤖',
-      'Python': '🐍',
-      'Filsafat': '🧠',
-      'Etika': '📜',
-      'Kesehatan': '🏥',
-      'Gizi': '🍎',
-      'Jaringan Komputer': '🌐',
-      'Keamanan Cyber': '🔒',
+      'PKK': '👩‍🍳',
+      'Mapil': '🎯',
       'Bahasa Jepang': '🇯🇵',
-      'Budaya Jepang': '🎌',
-      'Psikologi': '🧠',
-      'Bimbingan Konseling': '💬',
-      'Pancasila': '🇮🇩',
-      'Kewarganegaraan': '🏛️',
-      'Hukum': '⚖️',
-      'SysAdmin': '💻',
-      'IoT': '📶',
-      'TOEFL': '🇺🇸',
-      'Kewirausahaan': '💼',
-      'Data Science': '📈',
-      'Astronomi': '🔭',
-      'Fisika Kuantum': '⚛️',
-      'Tari': '💃',
-      'Musik': '🎵',
-      'Vokal': '🎤',
-      'Basket': '🏀',
-      'Menulis Kreatif': '✍️',
-      'Algoritma': '📐',
-      'Logika': '🔣',
-      'Sastra': '📖',
-      'Antropologi': '👥',
-      'Grafika Komputer': '🎨',
-      'UI/UX Design': '🎨',
-      'Bahasa Inggris Bisnis': '💼',
     };
-
+    
     return iconMap[subjectName] || '📚';
   };
 
-  // Fungsi untuk menentukan warna berdasarkan nama mata pelajaran
   const getSubjectColor = (subjectName: string): string => {
     const colorMap: { [key: string]: string } = {
       'Matematika': 'from-amber-400 to-amber-600',
-      'Fisika': 'from-blue-400 to-blue-600',
-      'Kimia': 'from-green-400 to-green-600',
-      'Biologi': 'from-emerald-400 to-emerald-600',
       'Bahasa Indonesia': 'from-red-400 to-red-600',
       'Bahasa Inggris': 'from-purple-400 to-purple-600',
       'Pemrograman Web': 'from-cyan-400 to-cyan-600',
@@ -170,16 +251,12 @@ const SubjectPage: React.FC = () => {
       'Pemrograman Desktop': 'from-teal-400 to-teal-600',
       'Basis Data': 'from-lime-400 to-lime-600',
       'Sejarah': 'from-amber-400 to-amber-600',
-      'Geografi': 'from-blue-400 to-blue-600',
-      'Ekonomi': 'from-emerald-400 to-emerald-600',
-      'Sosiologi': 'from-purple-400 to-purple-600',
       'PJOK': 'from-orange-400 to-orange-600',
       'Seni Budaya': 'from-pink-400 to-pink-600',
       'PKN': 'from-rose-400 to-rose-600',
       'Pendidikan Agama': 'from-violet-400 to-violet-600',
-      'Prakarya': 'from-yellow-400 to-yellow-600',
     };
-
+    
     const colors = [
       'from-blue-400 to-blue-600',
       'from-green-400 to-green-600',
@@ -197,67 +274,52 @@ const SubjectPage: React.FC = () => {
       'from-rose-400 to-rose-600',
       'from-yellow-400 to-yellow-600',
     ];
-
+    
     return colorMap[subjectName] || colors[Math.floor(Math.random() * colors.length)];
   };
 
-  // Fungsi untuk mendapatkan materi default berdasarkan mata pelajaran
   const getDefaultMaterials = (subjectName: string): Material[] => {
     const materialsMap: { [key: string]: Material[] } = {
       'Matematika': [
-        { id: 1, title: 'Kalkulus Dasar', type: 'pdf', description: 'Materi kalkulus diferensial dan integral', url: '/materials/kalkulus.pdf' },
-        { id: 2, title: 'Aljabar Linear', type: 'video', description: 'Video tutorial aljabar linear', url: 'https://youtube.com/watch?v=aljabar' },
+        { id: 1, title: 'Kalkulus Dasar', type: 'pdf', description: 'Materi kalkulus diferensial dan integral', url: 'https://drive.google.com/file/d/1a2b3c4d5e6f/view' },
+        { id: 2, title: 'Aljabar Linear', type: 'video', description: 'Video tutorial aljabar linear', url: 'https://youtube.com/watch?v=example1' },
         { id: 3, title: 'Statistika', type: 'doc', description: 'Materi statistika deskriptif', url: '/materials/statistika.docx' }
       ],
       'Bahasa Indonesia': [
-        { id: 4, title: 'Tata Bahasa', type: 'pdf', description: 'Materi tata bahasa Indonesia', url: '/materials/tata-bahasa.pdf' },
-        { id: 5, title: 'Sastra Indonesia', type: 'video', description: 'Pengenalan sastra Indonesia', url: 'https://youtube.com/watch?v=sastra' }
+        { id: 4, title: 'Tata Bahasa', type: 'pdf', description: 'Materi tata bahasa Indonesia', url: 'https://drive.google.com/file/d/abc123def456/view' },
+        { id: 5, title: 'Sastra Indonesia', type: 'video', description: 'Pengenalan sastra Indonesia', url: 'https://youtube.com/watch?v=example2' }
       ],
       'Bahasa Inggris': [
-        { id: 6, title: 'Grammar Tenses', type: 'pdf', description: '16 tenses dalam bahasa Inggris', url: '/materials/grammar.pdf' },
-        { id: 7, title: 'Conversation Practice', type: 'video', description: 'Video percakapan sehari-hari', url: 'https://youtube.com/watch?v=conversation' }
+        { id: 6, title: 'Grammar Tenses', type: 'pdf', description: '16 tenses dalam bahasa Inggris', url: 'https://drive.google.com/file/d/grammar123/view' },
+        { id: 7, title: 'Conversation Practice', type: 'video', description: 'Video percakapan sehari-hari', url: 'https://youtube.com/watch?v=example3' }
       ],
       'Pemrograman Web': [
-        { id: 8, title: 'HTML & CSS Dasar', type: 'pdf', description: 'Materi fundamental HTML dan CSS', url: '/materials/html-css.pdf' },
-        { id: 9, title: 'JavaScript ES6', type: 'video', description: 'Tutorial JavaScript modern', url: 'https://youtube.com/watch?v=javascript' },
+        { id: 8, title: 'HTML & CSS Dasar', type: 'pdf', description: 'Materi fundamental HTML dan CSS', url: 'https://drive.google.com/file/d/htmlcss123/view' },
+        { id: 9, title: 'JavaScript ES6', type: 'video', description: 'Tutorial JavaScript modern', url: 'https://youtube.com/watch?v=example4' },
         { id: 10, title: 'React.js Introduction', type: 'doc', description: 'Pengenalan framework React.js', url: '/materials/react.docx' }
       ],
       'Basis Data': [
-        { id: 11, title: 'Pengenalan Database', type: 'pdf', description: 'Konsep dasar database', url: '/materials/database.pdf' },
-        { id: 12, title: 'SQL Query Basic', type: 'video', description: 'Tutorial SQL untuk pemula', url: 'https://youtube.com/watch?v=sql' },
-        { id: 13, title: 'Normalisasi Database', type: 'pdf', description: 'Materi normalisasi 1NF, 2NF, 3NF', url: '/materials/normalisasi.pdf' }
+        { id: 11, title: 'Pengenalan Database', type: 'pdf', description: 'Konsep dasar database', url: 'https://drive.google.com/file/d/database123/view' },
+        { id: 12, title: 'SQL Query Basic', type: 'video', description: 'Tutorial SQL untuk pemula', url: 'https://youtube.com/watch?v=example5' },
+        { id: 13, title: 'Normalisasi Database', type: 'pdf', description: 'Materi normalisasi 1NF, 2NF, 3NF', url: 'https://drive.google.com/file/d/normalisasi123/view' }
       ],
       'Pemrograman Mobile': [
-        { id: 14, title: 'Flutter Basics', type: 'pdf', description: 'Dasar-dasar Flutter', url: '/materials/flutter.pdf' },
-        { id: 15, title: 'Dart Programming', type: 'video', description: 'Belajar bahasa Dart', url: 'https://youtube.com/watch?v=dart' }
+        { id: 14, title: 'Flutter Basics', type: 'pdf', description: 'Dasar-dasar Flutter', url: 'https://docs.google.com/document/d/1_FcnQwU4tPkA2MLfe-t3Pz4I7e9_Jq8-CQNKaBH-QoQ/edit#heading=h.illyzk6ywykf' },
+        { id: 15, title: 'Dart Programming', type: 'video', description: 'Belajar bahasa Dart', url: 'https://youtube.com/watch?v=example6' }
       ],
-      'Fisika': [
-        { id: 16, title: 'Mekanika Klasik', type: 'pdf', description: 'Hukum Newton dan gerak', url: '/materials/mekanika.pdf' },
-        { id: 17, title: 'Termodinamika', type: 'video', description: 'Konsep panas dan suhu', url: 'https://youtube.com/watch?v=termodinamika' }
-      ],
-      'Kimia': [
-        { id: 18, title: 'Struktur Atom', type: 'pdf', description: 'Struktur atom dan ikatan kimia', url: '/materials/atom.pdf' },
-        { id: 19, title: 'Reaksi Kimia', type: 'video', description: 'Jenis-jenis reaksi kimia', url: 'https://youtube.com/watch?v=reaksi' }
-      ],
-      'Biologi': [
-        { id: 20, title: 'Sel dan Jaringan', type: 'pdf', description: 'Struktur sel dan jaringan', url: '/materials/sel.pdf' },
-        { id: 21, title: 'Genetika', type: 'video', description: 'Konsep dasar genetika', url: 'https://youtube.com/watch?v=genetika' }
-      ]
     };
-
-    // Jika ada materi khusus untuk mata pelajaran, gunakan itu
+    
     if (materialsMap[subjectName]) {
       return materialsMap[subjectName];
     }
-
-    // Default materials untuk mata pelajaran lain
+    
     return [
       {
         id: Date.now(),
         title: `${subjectName} Dasar`,
         type: 'pdf',
         description: `Materi dasar ${subjectName}`,
-        url: `/materials/${subjectName.toLowerCase().replace(/ /g, '-')}-dasar.pdf`
+        url: `https://drive.google.com/file/d/sample123/view`
       },
       {
         id: Date.now() + 1,
@@ -270,7 +332,7 @@ const SubjectPage: React.FC = () => {
   };
 
   const getTypeIcon = (type: string) => {
-    switch (type) {
+    switch(type) {
       case 'pdf': return '📄';
       case 'video': return '🎥';
       case 'doc': return '📝';
@@ -280,7 +342,7 @@ const SubjectPage: React.FC = () => {
   };
 
   const getTypeColor = (type: string) => {
-    switch (type) {
+    switch(type) {
       case 'pdf': return 'bg-red-100 text-red-700';
       case 'video': return 'bg-purple-100 text-purple-700';
       case 'doc': return 'bg-blue-100 text-blue-700';
@@ -311,7 +373,7 @@ const SubjectPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
-
+      
       <div className="max-w-7xl mx-auto px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
@@ -324,28 +386,28 @@ const SubjectPage: React.FC = () => {
           </p>
         </div>
 
-{/* Search Bar - Hide ketika melihat detail materi */}
-{selectedSubject === null && (
-  <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
-    <div className="relative">
-      <svg 
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-      <input
-        type="text"
-        placeholder="Cari mata pelajaran atau guru..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all"
-      />
-    </div>
-  </div>
-)}
+        {/* Search Bar - Hide when viewing material details */}
+        {selectedSubject === null && (
+          <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
+            <div className="relative">
+              <svg 
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Cari mata pelajaran atau guru..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Subjects Grid */}
         {selectedSubject === null ? (
@@ -357,19 +419,17 @@ const SubjectPage: React.FC = () => {
                   onClick={() => setSelectedSubject(subject.id)}
                   className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-2 cursor-pointer"
                 >
-                  {/* Header dengan gradient */}
                   <div className={`bg-gradient-to-br ${subject.color} p-6 text-white relative`}>
                     <div className="absolute top-4 right-4">
                       <div className="text-3xl">{subject.icon}</div>
                     </div>
-
+                    
                     <div className="flex items-center gap-4 mt-4">
-                      {/* Foto Guru */}
                       <div className="w-16 h-16 rounded-full overflow-hidden bg-white/20 border-2 border-white/30 flex items-center justify-center">
                         {subject.teacherPhoto ? (
-                          <img
-                            src={subject.teacherPhoto}
-                            alt={subject.teacher}
+                          <img 
+                            src={subject.teacherPhoto} 
+                            alt={subject.teacher} 
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -378,7 +438,7 @@ const SubjectPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-
+                      
                       <div>
                         <h3 className="text-2xl font-bold mb-1">{subject.name}</h3>
                         <p className="text-white/90 text-sm">Pengajar: {subject.teacher}</p>
@@ -386,7 +446,6 @@ const SubjectPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Content */}
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2 text-slate-600">
@@ -396,7 +455,7 @@ const SubjectPage: React.FC = () => {
                         <span className="text-sm font-medium">{subject.materials.length} Materi</span>
                       </div>
                     </div>
-
+                    
                     <button className="w-full bg-slate-700 text-white py-3 rounded-xl hover:bg-slate-800 transition-colors font-medium flex items-center justify-center gap-2">
                       <span>Lihat Materi</span>
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,8 +466,7 @@ const SubjectPage: React.FC = () => {
                 </div>
               ))}
             </div>
-
-            {/* Jika tidak ada data */}
+            
             {filteredSubjects.length === 0 && subjects.length === 0 && (
               <div className="bg-white rounded-3xl p-16 shadow-lg text-center">
                 <div className="text-6xl mb-4">📚</div>
@@ -422,10 +480,9 @@ const SubjectPage: React.FC = () => {
         ) : (
           // Detail Materials View
           <div>
-            {/* Back Button */}
             <button
               onClick={() => setSelectedSubject(null)}
-              className="mb-6 flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium"
+              className="mb-6 flex items-center gap-2 text-slate-700 hover:text-slate-900 font-medium transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -437,15 +494,13 @@ const SubjectPage: React.FC = () => {
               .filter(s => s.id === selectedSubject)
               .map((subject) => (
                 <div key={subject.id}>
-                  {/* Subject Header */}
                   <div className={`bg-gradient-to-br ${subject.color} rounded-3xl p-10 shadow-lg mb-8 text-white`}>
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                      {/* Foto Guru Besar */}
                       <div className="w-32 h-32 rounded-full overflow-hidden bg-white/20 border-4 border-white/30 flex items-center justify-center">
                         {subject.teacherPhoto ? (
-                          <img
-                            src={subject.teacherPhoto}
-                            alt={subject.teacher}
+                          <img 
+                            src={subject.teacherPhoto} 
+                            alt={subject.teacher} 
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -454,7 +509,7 @@ const SubjectPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-
+                      
                       <div className="flex-1 text-center md:text-left">
                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                           <div className="text-5xl">{subject.icon}</div>
@@ -474,10 +529,8 @@ const SubjectPage: React.FC = () => {
                         className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
                       >
                         <div className="flex items-start gap-4">
-                          {/* Icon */}
                           <div className="text-4xl">{getTypeIcon(material.type)}</div>
-
-                          {/* Content */}
+                          
                           <div className="flex-1">
                             <div className="flex items-start justify-between mb-2">
                               <h3 className="text-xl font-bold text-slate-800">{material.title}</h3>
@@ -486,13 +539,11 @@ const SubjectPage: React.FC = () => {
                               </span>
                             </div>
                             <p className="text-slate-600 mb-4">{material.description}</p>
-
+                            
                             {/* Action Buttons */}
                             <div className="flex gap-3">
-                              <a
-                                href={material.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                onClick={() => handleViewMaterial(material)}
                                 className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 transition-colors text-sm font-medium inline-flex items-center gap-2"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,12 +551,33 @@ const SubjectPage: React.FC = () => {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                                 Lihat Materi
-                              </a>
-                              <button className="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium inline-flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download
+                              </button>
+                              
+                              <button 
+                                onClick={() => handleDownload(material)}
+                                disabled={downloading === material.id}
+                                className={`${
+                                  downloading === material.id 
+                                    ? 'bg-slate-400 cursor-not-allowed' 
+                                    : 'bg-slate-200 hover:bg-slate-300'
+                                } text-slate-700 px-6 py-2 rounded-lg transition-colors text-sm font-medium inline-flex items-center gap-2`}
+                              >
+                                {downloading === material.id ? (
+                                  <>
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Mendownload...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Download
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
@@ -519,7 +591,7 @@ const SubjectPage: React.FC = () => {
         )}
 
         {/* Empty State untuk search */}
-        {filteredSubjects.length === 0 && subjects.length > 0 && (
+        {filteredSubjects.length === 0 && subjects.length > 0 && selectedSubject === null && (
           <div className="bg-white rounded-3xl p-16 shadow-lg text-center">
             <svg className="w-20 h-20 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

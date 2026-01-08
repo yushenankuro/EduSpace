@@ -40,6 +40,7 @@ const Register: React.FC = () => {
       return;
     }
 
+
     try {
       // REGISTER MENGGUNAKAN SUPABASE AUTH
       const { data, error: authError } = await supabase.auth.signUp({
