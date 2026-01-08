@@ -8,84 +8,48 @@ const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isTeacher, setIsTeacher] = useState(false);
 
-  // CEK USER DAN ROLE
+  // CEK USER SUDAH LOGIN MENGGUNAKAN SUPABASE AUTH
   useEffect(() => {
     const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+      const { data } = await supabase.auth.getSession();
 
-        if (session?.user) {
-          // User logged in
-          setIsLoggedIn(true);
-          setUserEmail(session.user.email || "");
+      if (data.session) {
+        setIsLoggedIn(true);
+        setUserEmail(data.session.user.email || "");
 
-          // Fetch user role dari table user_roles
-          const { data: roleData, error } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
+        // Cek apakah user adalah guru
+        const { data: teacher } = await supabase
+          .from("teachers")
+          .select("id")
+          .eq("email", data.session.user.email)
+          .maybeSingle();
 
-          if (error) {
-            console.error("Error fetching role:", error);
-            setUserRole(null);
-          } else {
-            setUserRole(roleData?.role || null);
-          }
-        } else {
-          // User not logged in
-          setIsLoggedIn(false);
-          setUserEmail("");
-          setUserRole(null);
-        }
-      } catch (error) {
-        console.error("Error checking user:", error);
+        setIsTeacher(!!teacher);
+      } else {
         setIsLoggedIn(false);
         setUserEmail("");
-        setUserRole(null);
-      } finally {
-        setLoading(false);
+        setIsTeacher(false);
       }
     };
 
     checkUser();
 
-    // Listener untuk perubahan auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event);
-        
-        if (event === 'SIGNED_IN' && session) {
-          setIsLoggedIn(true);
-          setUserEmail(session.user.email || "");
-          
-          // Fetch role
-          const { data: roleData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-          
-          setUserRole(roleData?.role || null);
-        } else if (event === 'SIGNED_OUT') {
-          setIsLoggedIn(false);
-          setUserEmail("");
-          setUserRole(null);
-        }
-      }
-    );
+    // Listener bila user logout/login
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkUser();
+    });
 
     return () => {
-      subscription.unsubscribe();
+      listener.subscription.unsubscribe();
     };
   }, []);
 
-  // LOGOUT
+  // LOGOUT PAKAI SUPABASE AUTH - IMPROVED
   const handleLogout = async () => {
     try {
+      // Sign out dari Supabase
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -93,19 +57,23 @@ const Navbar: React.FC = () => {
         throw error;
       }
 
-      // Clear state
+      // Clear local state
       setIsLoggedIn(false);
       setUserEmail("");
-      setUserRole(null);
+      setIsTeacher(false);
+
+      // Clear all cookies (untuk cleanup token)
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
 
       // Redirect ke login
       router.push("/login");
     } catch (error) {
       console.error("Error during logout:", error);
-      // Force redirect meskipun error
-      setIsLoggedIn(false);
-      setUserEmail("");
-      setUserRole(null);
+      // Force redirect even if error
       router.push("/login");
     }
   };
@@ -120,11 +88,6 @@ const Navbar: React.FC = () => {
       router.pathname === "/grades" ||
       router.pathname.startsWith("/grades/")
     );
-  };
-
-  // Cek apakah user boleh akses dashboard
-  const canAccessDashboard = () => {
-    return userRole === 'admin' || userRole === 'guru';
   };
 
   return (
@@ -170,16 +133,10 @@ const Navbar: React.FC = () => {
                 Mapel
               </Link>
 
-              {/* Show login/logout based on actual login state */}
-              {loading ? (
-                // Loading state
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              ) : isLoggedIn ? (
+              {isLoggedIn ? (
                 <>
-                  {/* Dashboard Dropdown - Hanya untuk Admin & Guru */}
-                  {canAccessDashboard() && (
+                  {/* Dashboard Dropdown - HANYA MUNCUL KALAU GURU */}
+                  {isTeacher && (
                     <div
                       className="relative"
                       onMouseEnter={() => setIsDropdownOpen(true)}
@@ -208,34 +165,30 @@ const Navbar: React.FC = () => {
                         </svg>
                       </div>
 
-                      {/* Dropdown Menu */}
+                      {/* Dropdown Menu with invisible bridge */}
                       {isDropdownOpen && (
                         <div className="absolute top-full left-0 pt-2 z-50">
                           <div className="bg-slate-700 rounded-lg shadow-xl py-2 min-w-[200px]">
-                            {userRole === 'admin' && (
-                              <Link
-                                href="/dashboard"
-                                className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
-                                  isActive("/dashboard")
-                                    ? "text-white bg-slate-600"
-                                    : "text-gray-300"
-                                }`}
-                              >
-                                📋 Daftar Siswa & Guru
-                              </Link>
-                            )}
-                            {canAccessDashboard() && (
-                              <Link
-                                href="/grades"
-                                className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
-                                  isActive("/grades")
-                                    ? "text-white bg-slate-600"
-                                    : "text-gray-300"
-                                }`}
-                              >
-                                📊 Nilai & Rapor
-                              </Link>
-                            )}
+                            <Link
+                              href="/dashboard"
+                              className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
+                                isActive("/dashboard")
+                                  ? "text-white bg-slate-600"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              📋 Daftar Siswa & Guru
+                            </Link>
+                            <Link
+                              href="/dashboard/grades"
+                              className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
+                                isActive("/dashboard/grades")
+                                  ? "text-white bg-slate-600"
+                                  : "text-gray-300"
+                              }`}
+                            >
+                              📊 Nilai & Rapor
+                            </Link>
                           </div>
                         </div>
                       )}
@@ -262,15 +215,9 @@ const Navbar: React.FC = () => {
                       <span className="text-sm text-gray-300 max-w-[150px] truncate">
                         {userEmail}
                       </span>
-                      {userRole && (
-                        <span 
-                          className={`text-white text-xs px-2 py-0.5 rounded-full font-medium ${
-                            userRole === 'admin' ? 'bg-teal-500' :
-                            userRole === 'guru' ? 'bg-purple-500' :
-                            'bg-blue-500'
-                          }`}
-                        >
-                          {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                      {isTeacher && (
+                        <span className="bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                          Guru
                         </span>
                       )}
                     </div>
@@ -299,7 +246,6 @@ const Navbar: React.FC = () => {
                   </div>
                 </>
               ) : (
-                // Login button - hanya muncul kalau BELUM login
                 <Link
                   href="/login"
                   className="bg-teal-500 text-white px-5 py-2 rounded-full hover:bg-teal-600 transition-colors text-sm font-medium flex items-center gap-2"
