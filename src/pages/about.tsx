@@ -117,14 +117,6 @@ const About: React.FC = () => {
     },
   ];
 
-  // Class stats
-  const classStats = [
-    { icon: "👥", label: "Total Siswa", value: "32", color: "bg-blue-500" },
-    { icon: "👨", label: "Laki-laki", value: "18", color: "bg-cyan-500" },
-    { icon: "👩", label: "Perempuan", value: "14", color: "bg-pink-500" },
-    { icon: "👨‍🏫", label: "Guru Pengajar", value: "12+", color: "bg-purple-500" },
-  ];
-
   // Class achievements
   const achievements = [
     {
@@ -166,19 +158,8 @@ const About: React.FC = () => {
             Kelas unggulan dengan fokus pada pengembangan software, web development, dan teknologi terkini. 
             Bersama membangun masa depan digital Indonesia!
           </p>
-          
-          {/* Class Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
-            {classStats.map((stat, idx) => (
-              <div key={idx} className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 hover:bg-white/30 transition-all">
-                <div className="text-4xl mb-2">{stat.icon}</div>
-                <div className="text-3xl font-bold">{stat.value}</div>
-                <div className="text-sm opacity-90">{stat.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
-
+        
         {/* Class Achievements */}
         <div className="mb-12">
           <h2 className="text-3xl font-bold text-slate-800 text-center mb-8">

@@ -1,93 +1,50 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/authStore";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [isTeacher, setIsTeacher] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  
+  // Get state from Zustand store
+  const { isLoggedIn, userEmail, userRole, photoUrl, logout } = useAuthStore()
 
-  // CEK USER SUDAH LOGIN MENGGUNAKAN SUPABASE AUTH
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getSession();
-
-      if (data.session) {
-        setIsLoggedIn(true);
-        setUserEmail(data.session.user.email || "");
-
-        // Cek apakah user adalah guru
-        const { data: teacher } = await supabase
-          .from("teachers")
-          .select("id")
-          .eq("email", data.session.user.email)
-          .maybeSingle();
-
-        setIsTeacher(!!teacher);
-      } else {
-        setIsLoggedIn(false);
-        setUserEmail("");
-        setIsTeacher(false);
-      }
-    };
-
-    checkUser();
-
-    // Listener bila user logout/login
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      checkUser();
-    });
-
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
-
-  // LOGOUT PAKAI SUPABASE AUTH - IMPROVED
   const handleLogout = async () => {
-    try {
-      // Sign out dari Supabase
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error("Logout error:", error);
-        throw error;
-      }
-
-      // Clear local state
-      setIsLoggedIn(false);
-      setUserEmail("");
-      setIsTeacher(false);
-
-      // Clear all cookies (untuk cleanup token)
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-
-      // Redirect ke login
-      router.push("/login");
-    } catch (error) {
-      console.error("Error during logout:", error);
-      // Force redirect even if error
-      router.push("/login");
-    }
+    await logout()
+    router.push("/login")
   };
 
   const isActive = (path: string) => router.pathname === path;
 
-  // Check if any dashboard route is active
   const isDashboardActive = () => {
     return (
       router.pathname === "/dashboard" ||
-      router.pathname.startsWith("/dashboard/") ||
-      router.pathname === "/grades" ||
-      router.pathname.startsWith("/grades/")
+      router.pathname.startsWith("/dashboard") ||
+      router.pathname === "/grades"
     );
+  };
+
+  const canAccessDashboard = () => {
+    return userRole === 'admin' || userRole === 'guru';
+  };
+
+  // Get initials from email
+  const getInitials = (email: string) => {
+    if (!email) return "?";
+    const parts = email.split("@")[0].split(".");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
+  };
+
+  // Generate avatar URL from Gravatar or UI Avatars
+  const getAvatarUrl = (email: string) => {
+    // Menggunakan UI Avatars (alternatif Gravatar)
+    const name = email.split("@")[0];
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
   };
 
   return (
@@ -95,7 +52,6 @@ const Navbar: React.FC = () => {
       <div className="max-w-5xl mx-auto">
         <div className="bg-slate-600 rounded-full px-8 py-4 shadow-lg">
           <div className="flex justify-center items-center">
-            {/* Menu items */}
             <div className="flex gap-8 items-center">
               <Link
                 href="/"
@@ -133,10 +89,11 @@ const Navbar: React.FC = () => {
                 Mapel
               </Link>
 
+              {/* Conditional rendering */}
               {isLoggedIn ? (
                 <>
-                  {/* Dashboard Dropdown - HANYA MUNCUL KALAU GURU */}
-                  {isTeacher && (
+                  {/* Dashboard Dropdown - Admin & Guru only */}
+                  {canAccessDashboard() && (
                     <div
                       className="relative"
                       onMouseEnter={() => setIsDropdownOpen(true)}
@@ -165,7 +122,6 @@ const Navbar: React.FC = () => {
                         </svg>
                       </div>
 
-                      {/* Dropdown Menu with invisible bridge */}
                       {isDropdownOpen && (
                         <div className="absolute top-full left-0 pt-2 z-50">
                           <div className="bg-slate-700 rounded-lg shadow-xl py-2 min-w-[200px]">
@@ -180,9 +136,9 @@ const Navbar: React.FC = () => {
                               📋 Daftar Siswa & Guru
                             </Link>
                             <Link
-                              href="/dashboard/grades"
+                              href="/grades"
                               className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
-                                isActive("/dashboard/grades")
+                                isActive("/grades")
                                   ? "text-white bg-slate-600"
                                   : "text-gray-300"
                               }`}
@@ -195,54 +151,94 @@ const Navbar: React.FC = () => {
                     </div>
                   )}
 
-                  {/* User Info & Logout */}
-                  <div className="flex items-center gap-3">
-                    {/* User Email Badge */}
-                    <div className="flex items-center gap-2 bg-slate-700 px-4 py-2 rounded-full">
-                      <svg
-                        className="w-4 h-4 text-teal-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  {/* Profile Dropdown */}
+                  <div 
+                    className="relative"
+                    onMouseEnter={() => setIsProfileOpen(true)}
+                    onMouseLeave={() => setIsProfileOpen(false)}
+                  >
+                    {/* Profile Picture */}
+                    <div className="flex items-center gap-3 cursor-pointer">
+                      <div className="relative">
+                        <img
+                          src={photoUrl || getAvatarUrl(userEmail)}
+                          alt={userEmail}
+                          className="w-10 h-10 rounded-full border-2 border-teal-400 hover:border-teal-300 transition-all"
                         />
-                      </svg>
-                      <span className="text-sm text-gray-300 max-w-[150px] truncate">
-                        {userEmail}
-                      </span>
-                      {isTeacher && (
-                        <span className="bg-teal-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-                          Guru
-                        </span>
-                      )}
+                        {/* Role indicator badge */}
+                        {userRole && (
+                          <div 
+                            className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-600 ${
+                              userRole === 'admin' ? 'bg-teal-500' :
+                              userRole === 'guru' ? 'bg-purple-500' :
+                              'bg-blue-500'
+                            }`}
+                            title={userRole}
+                          />
+                        )}
+                      </div>
                     </div>
 
-                    {/* Logout Button */}
-                    <button
-                      onClick={handleLogout}
-                      className="bg-red-500 text-white px-5 py-2 rounded-full hover:bg-red-600 transition-colors text-sm font-medium flex items-center gap-2"
-                      title="Logout"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
-                      Logout
-                    </button>
+                    {/* Profile Dropdown Menu */}
+                    {isProfileOpen && (
+                      <div className="absolute top-full right-0 pt-2 z-50">
+                        <div className="bg-slate-700 rounded-lg shadow-xl py-2 min-w-[240px]">
+                          {/* User Info Header */}
+                          <div className="px-4 py-3 border-b border-slate-600">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={getAvatarUrl(userEmail)}
+                                alt={userEmail}
+                                className="w-12 h-12 rounded-full"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-white truncate">
+                                  {userEmail}
+                                </p>
+                                {userRole && (
+                                  <span 
+                                    className={`inline-block mt-1 text-white text-xs px-2 py-0.5 rounded-full font-medium ${
+                                      userRole === 'admin' ? 'bg-teal-500' :
+                                      userRole === 'guru' ? 'bg-purple-500' :
+                                      'bg-blue-500'
+                                    }`}
+                                  >
+                                    {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Menu Items */}
+                          <div className="py-1">
+                            <Link
+                              href="/profile"
+                              className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:bg-slate-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              Profile Saya
+                            </Link>
+                            
+                          </div>
+
+                          {/* Logout Button */}
+                          <div className="border-t border-slate-600 py-1">
+                            <button
+                              onClick={handleLogout}
+                              className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-400 hover:bg-slate-600 hover:text-red-300 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                              </svg>
+                              Logout
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (

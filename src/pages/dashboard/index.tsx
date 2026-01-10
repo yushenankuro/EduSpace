@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/router";
 import Select from 'react-select';
+import { useAuthStore } from "@/store/authStore";
 
 interface Student {
   id: string;
@@ -72,8 +73,7 @@ const Dashboard: React.FC = () => {
     subjects: [],
     teacher_gender: ''
   });
-
-  const [userEmail, setUserEmail] = useState('');
+  const { userEmail } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,14 +93,6 @@ const Dashboard: React.FC = () => {
   const [currentPageTeachers, setCurrentPageTeachers] = useState(1);
   const itemsPerPage = 10;
 
-  const checkAuth = async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      router.push('/login');
-      return;
-    }
-    setUserEmail(data.session.user.email || '');
-  };
 
   const fetchStudents = async () => {
     try {
@@ -136,7 +128,6 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    checkAuth();
     fetchStudents();
     fetchTeachers();
   }, []);
