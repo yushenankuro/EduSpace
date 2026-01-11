@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useAuthStore } from "@/store/authStore";
+import useAuthStore from "@/store/authStore";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
-  // Get state from Zustand store
-  const { isLoggedIn, userEmail, userRole, photoUrl, logout } = useAuthStore()
+  // Get state from Zustand store - FIX PROPERTY NAMES
+  const { isLoggedIn, email, role, photoUrl, fullName, logout } = useAuthStore()
 
   const handleLogout = async () => {
     await logout()
@@ -27,24 +27,42 @@ const Navbar: React.FC = () => {
   };
 
   const canAccessDashboard = () => {
-    return userRole === 'admin' || userRole === 'guru';
+    return role === 'admin' || role === 'guru';
   };
 
-  // Get initials from email
-  const getInitials = (email: string) => {
-    if (!email) return "?";
-    const parts = email.split("@")[0].split(".");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+  // Get initials from email or fullName
+  const getInitials = () => {
+    if (fullName) {
+      const parts = fullName.split(" ");
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return fullName.substring(0, 2).toUpperCase();
     }
-    return email.substring(0, 2).toUpperCase();
+    
+    if (email) {
+      const parts = email.split("@")[0].split(".");
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return email.substring(0, 2).toUpperCase();
+    }
+    
+    return "?";
   };
 
-  // Generate avatar URL from Gravatar or UI Avatars
-  const getAvatarUrl = (email: string) => {
-    // Menggunakan UI Avatars (alternatif Gravatar)
-    const name = email.split("@")[0];
+  // Generate avatar URL - pakai photoUrl dari store jika ada
+  const getAvatarUrl = () => {
+    if (photoUrl) return photoUrl; // Pakai foto dari database kalau ada
+    
+    const name = fullName || email?.split("@")[0] || "User";
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
+  };
+
+  // Display name untuk profile dropdown
+  const getDisplayName = () => {
+    if (fullName) return fullName;
+    return email || "User";
   };
 
   return (
@@ -136,9 +154,9 @@ const Navbar: React.FC = () => {
                               📋 Daftar Siswa & Guru
                             </Link>
                             <Link
-                              href="/grades"
+                              href="/dashboard/grades"
                               className={`block px-4 py-2 text-sm hover:bg-slate-600 transition-colors ${
-                                isActive("/grades")
+                                isActive("/dashboard/grades")
                                   ? "text-white bg-slate-600"
                                   : "text-gray-300"
                               }`}
@@ -161,19 +179,24 @@ const Navbar: React.FC = () => {
                     <div className="flex items-center gap-3 cursor-pointer">
                       <div className="relative">
                         <img
-                          src={photoUrl || getAvatarUrl(userEmail)}
-                          alt={userEmail}
-                          className="w-10 h-10 rounded-full border-2 border-teal-400 hover:border-teal-300 transition-all"
+                          src={getAvatarUrl()}
+                          alt={getDisplayName()}
+                          className="w-10 h-10 rounded-full border-2 border-teal-400 hover:border-teal-300 transition-all object-cover"
+                          onError={(e) => {
+                            // Fallback ke UI Avatars jika foto gagal dimuat
+                            const name = fullName || email?.split("@")[0] || "User";
+                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
+                          }}
                         />
                         {/* Role indicator badge */}
-                        {userRole && (
+                        {role && (
                           <div 
                             className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-600 ${
-                              userRole === 'admin' ? 'bg-teal-500' :
-                              userRole === 'guru' ? 'bg-purple-500' :
+                              role === 'admin' ? 'bg-teal-500' :
+                              role === 'guru' ? 'bg-purple-500' :
                               'bg-blue-500'
                             }`}
-                            title={userRole}
+                            title={role}
                           />
                         )}
                       </div>
@@ -187,23 +210,32 @@ const Navbar: React.FC = () => {
                           <div className="px-4 py-3 border-b border-slate-600">
                             <div className="flex items-center gap-3">
                               <img
-                                src={getAvatarUrl(userEmail)}
-                                alt={userEmail}
-                                className="w-12 h-12 rounded-full"
+                                src={getAvatarUrl()}
+                                alt={getDisplayName()}
+                                className="w-12 h-12 rounded-full object-cover"
+                                onError={(e) => {
+                                  const name = fullName || email?.split("@")[0] || "User";
+                                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
+                                }}
                               />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-white truncate">
-                                  {userEmail}
+                                  {getDisplayName()}
                                 </p>
-                                {userRole && (
+                                {email && (
+                                  <p className="text-xs text-gray-400 truncate mt-1">
+                                    {email}
+                                  </p>
+                                )}
+                                {role && (
                                   <span 
                                     className={`inline-block mt-1 text-white text-xs px-2 py-0.5 rounded-full font-medium ${
-                                      userRole === 'admin' ? 'bg-teal-500' :
-                                      userRole === 'guru' ? 'bg-purple-500' :
+                                      role === 'admin' ? 'bg-teal-500' :
+                                      role === 'guru' ? 'bg-purple-500' :
                                       'bg-blue-500'
                                     }`}
                                   >
-                                    {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                                    {role.charAt(0).toUpperCase() + role.slice(1)}
                                   </span>
                                 )}
                               </div>

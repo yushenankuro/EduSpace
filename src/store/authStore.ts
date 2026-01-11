@@ -1,111 +1,110 @@
-import { create } from 'zustand'
-import { supabaseBrowser } from '@/lib/supabase-browser'
+// store/authStore.tsx
+import { create } from 'zustand';
+import { supabaseBrowser } from '@/lib/supabase-browser';
 
 interface AuthState {
-  isLoggedIn: boolean
-  userEmail: string
-  userRole: string | null
-  userId: string | null
-  photoUrl: string | null  // 👈 Tambah ini
-  loading: boolean
-  
-  setAuth: (email: string, role: string | null, userId: string, photoUrl?: string | null) => void
-  clearAuth: () => void
-  checkAuth: () => Promise<void>
-  logout: () => Promise<void>
+  email: string | null;
+  role: string | null;
+  userId: string | null;
+  fullName: string | null;
+  photoUrl: string | null;
+  isLoading: boolean;
+  isLoggedIn: boolean;
+  checkAuth: () => Promise<void>;
+  setAuth: (email: string, role: string | null, userId: string, fullName?: string | null, photoUrl?: string | null) => void;
+  updateProfile: (fullName: string | null, photoUrl: string | null) => void;
+  clearAuth: () => void;
+  logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  isLoggedIn: false,
-  userEmail: '',
-  userRole: null,
+const useAuthStore = create<AuthState>((set, get) => ({
+  email: null,
+  role: null,
   userId: null,
-  photoUrl: null,  // 👈 Tambah ini
-  loading: true,
-
-  setAuth: (email, role, userId, photoUrl = null) => 
-    set({ 
-      isLoggedIn: true, 
-      userEmail: email, 
-      userRole: role,
-      userId: userId,
-      photoUrl: photoUrl,  // 👈 Tambah ini
-      loading: false 
-    }),
-
-  clearAuth: () => 
-    set({ 
-      isLoggedIn: false, 
-      userEmail: '', 
-      userRole: null,
-      userId: null,
-      photoUrl: null,  // 👈 Tambah ini
-      loading: false 
-    }),
-
+  fullName: null,
+  photoUrl: null,
+  isLoading: true, // Mulai dengan true karena cek auth di awal
+  isLoggedIn: false,
+  
   checkAuth: async () => {
     try {
-      set({ loading: true })
-      
-      const { data: { session } } = await supabaseBrowser.auth.getSession()
-
-      if (session?.user) {
+      const { data: { session } } = await supabaseBrowser.auth.getSession();
+      if (session) {
+        // 1. Fetch role dari user_roles
         const { data: roleData } = await supabaseBrowser
           .from('user_roles')
-          .select('role, photo_url')  // 👈 Tambah photo_url
+          .select('role')
           .eq('user_id', session.user.id)
-          .maybeSingle()
-
+          .maybeSingle();
+          
+        // 2. Fetch profile dari user_profiles
+        const { data: profileData } = await supabaseBrowser
+          .from('user_profiles')
+          .select('full_name, photo_url')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+          
         set({
-          isLoggedIn: true,
-          userEmail: session.user.email || '',
-          userRole: roleData?.role || null,
+          email: session.user.email,
+          role: roleData?.role || null,
           userId: session.user.id,
-          photoUrl: roleData?.photo_url || null,  // 👈 Tambah ini
-          loading: false
-        })
+          fullName: profileData?.full_name || null,
+          photoUrl: profileData?.photo_url || null,
+          isLoading: false,
+          isLoggedIn: true
+        });
       } else {
-        set({
-          isLoggedIn: false,
-          userEmail: '',
-          userRole: null,
-          userId: null,
-          photoUrl: null,  // 👈 Tambah ini
-          loading: false
-        })
+        set({ 
+          email: null, 
+          role: null, 
+          userId: null, 
+          fullName: null, 
+          photoUrl: null, 
+          isLoading: false,
+          isLoggedIn: false
+        });
       }
     } catch (error) {
-      console.error('Error checking auth:', error)
-      set({
-        isLoggedIn: false,
-        userEmail: '',
-        userRole: null,
-        userId: null,
-        photoUrl: null,  // 👈 Tambah ini
-        loading: false
-      })
+      console.error('Auth check error:', error);
+      set({ isLoading: false, isLoggedIn: false });
     }
   },
-
+  
+  setAuth: (email, role, userId, fullName = null, photoUrl = null) => {
+    set({ 
+      email, 
+      role, 
+      userId, 
+      fullName, 
+      photoUrl,
+      isLoading: false,
+      isLoggedIn: true
+    });
+  },
+  
+  updateProfile: (fullName, photoUrl) => {
+    set({ 
+      fullName, 
+      photoUrl
+    });
+  },
+  
+  clearAuth: () => {
+    set({ 
+      email: null, 
+      role: null, 
+      userId: null, 
+      fullName: null, 
+      photoUrl: null,
+      isLoading: false,
+      isLoggedIn: false
+    });
+  },
+  
   logout: async () => {
-    try {
-      await supabaseBrowser.auth.signOut()
-      set({
-        isLoggedIn: false,
-        userEmail: '',
-        userRole: null,
-        userId: null,
-        loading: false
-      })
-    } catch (error) {
-      console.error('Logout error:', error)
-      set({
-        isLoggedIn: false,
-        userEmail: '',
-        userRole: null,
-        userId: null,
-        loading: false
-      })
-    }
+    await supabaseBrowser.auth.signOut();
+    get().clearAuth();
   }
-}))
+}));
+
+export default useAuthStore;

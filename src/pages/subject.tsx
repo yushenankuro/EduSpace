@@ -41,17 +41,6 @@ const SubjectPage: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [downloading, setDownloading] = useState<number | null>(null);
 
-  // Check auth
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      }
-    };
-    checkAuth();
-  }, [router]);
-
   // Fetch data guru dari Supabase
   const fetchTeachers = async () => {
     try {

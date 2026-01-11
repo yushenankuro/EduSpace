@@ -35,8 +35,7 @@ const NilaiRaporPage: React.FC = () => {
   const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [studentNisn, setStudentNisn] = useState('');
@@ -48,32 +47,9 @@ const NilaiRaporPage: React.FC = () => {
   const [studentOptions, setStudentOptions] = useState<SelectOption[]>([]);
 
   useEffect(() => {
-    // Cek session dan fetch data
-    const checkAuthAndFetchData = async () => {
-      setAuthLoading(true);
-      
-      try {
-        // Cek apakah user sudah login
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          // Redirect ke login jika belum login
-          router.push('/login/?redirect=/grades');
-          return;
-        }
-        
-        // User sudah login, fetch data siswa
-        await fetchStudents();
-      } catch (error) {
-        console.error('Auth check error:', error);
-        router.push('/login?redirect=/grades');
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    checkAuthAndFetchData();
-  }, [router]);
+    // Fetch data siswa saat komponen dimuat
+    fetchStudents();
+  }, []);
 
   useEffect(() => {
     // Fetch nilai ketika siswa dipilih atau semester/tahun ajaran berubah
@@ -324,15 +300,6 @@ const NilaiRaporPage: React.FC = () => {
       }
     })
   };
-
-  // Loading states
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Memeriksa autentikasi...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-300 to-sky-400 py-8 px-4">

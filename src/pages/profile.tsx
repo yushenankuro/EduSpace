@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from '@/components/Navbar';
 import { supabaseBrowser } from '@/lib/supabase-browser';
-import { useAuthStore } from '@/store/authStore';
+import useAuthStore from '@/store/authStore';
 
 interface ProfileData {
   email: string;
@@ -12,7 +12,7 @@ interface ProfileData {
 
 const ProfilePage: React.FC = () => {
   const router = useRouter();
-  const { isLoggedIn, userEmail, userRole, userId } = useAuthStore();
+  const { isLoggedIn, email, role, userId, updateProfile } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,7 +29,6 @@ const ProfilePage: React.FC = () => {
 
   // Password change
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -57,14 +56,14 @@ const ProfilePage: React.FC = () => {
         return;
       }
 
-      // Fetch profile from user_roles table
+      // Fetch profile dari user_profiles table
       const { data: profile, error } = await supabaseBrowser
-        .from('user_roles')
+        .from('user_profiles') // ✅ PASTIKAN user_profiles
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error fetching profile:', error);
       }
 
@@ -113,6 +112,7 @@ const ProfilePage: React.FC = () => {
       const fileName = `${userId}_${Date.now()}.${fileExt}`;
       const filePath = `profile-photos/${fileName}`;
 
+      // Upload ke storage
       const { error: uploadError } = await supabaseBrowser.storage
         .from('profile-photos')
         .upload(filePath, photoFile, {
@@ -122,6 +122,7 @@ const ProfilePage: React.FC = () => {
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: urlData } = supabaseBrowser.storage
         .from('profile-photos')
         .getPublicUrl(filePath);
@@ -152,17 +153,22 @@ const ProfilePage: React.FC = () => {
         }
       }
 
-      // Update profile in user_roles table
+      // ✅ UPSERT ke user_profiles, BUKAN user_roles
       const { error: updateError } = await supabaseBrowser
-        .from('user_roles')
-        .update({
+        .from('user_profiles') // ✅ INI YANG PENTING
+        .upsert({
+          user_id: userId,
           full_name: profileData.full_name,
           photo_url: photoUrl,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (updateError) throw updateError;
+
+      // Update Zustand store
+      updateProfile(profileData.full_name, photoUrl);
 
       setSuccess('Profil berhasil diperbarui!');
       setPhotoFile(null);
@@ -206,7 +212,6 @@ const ProfilePage: React.FC = () => {
       if (error) throw error;
 
       setSuccess('Password berhasil diubah!');
-      setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowPasswordForm(false);
@@ -282,15 +287,15 @@ const ProfilePage: React.FC = () => {
                     alt="Profile"
                     className="w-40 h-40 rounded-full object-cover border-4 border-teal-400"
                   />
-                  {userRole && (
+                  {role && (
                     <div 
                       className={`absolute bottom-2 right-2 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center text-white text-xs font-bold ${
-                        userRole === 'admin' ? 'bg-teal-500' :
-                        userRole === 'guru' ? 'bg-purple-500' :
+                        role === 'admin' ? 'bg-teal-500' :
+                        role === 'guru' ? 'bg-purple-500' :
                         'bg-blue-500'
                       }`}
                     >
-                      {userRole === 'admin' ? 'A' : userRole === 'guru' ? 'G' : 'S'}
+                      {role === 'admin' ? 'A' : role === 'guru' ? 'G' : 'S'}
                     </div>
                   )}
                 </div>
@@ -299,15 +304,15 @@ const ProfilePage: React.FC = () => {
                   {profileData.full_name || 'Nama Belum Diisi'}
                 </h3>
                 <p className="text-slate-600 mb-2">{profileData.email}</p>
-                {userRole && (
+                {role && (
                   <span 
                     className={`inline-block text-white text-sm px-3 py-1 rounded-full font-medium ${
-                      userRole === 'admin' ? 'bg-teal-500' :
-                      userRole === 'guru' ? 'bg-purple-500' :
+                      role === 'admin' ? 'bg-teal-500' :
+                      role === 'guru' ? 'bg-purple-500' :
                       'bg-blue-500'
                     }`}
                   >
-                    {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
                   </span>
                 )}
 

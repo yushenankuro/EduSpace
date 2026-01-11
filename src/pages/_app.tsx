@@ -2,47 +2,53 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/authStore'
+import useAuthStore from '@/store/authStore'
 
 export default function App({ Component, pageProps }: AppProps) {
-  const checkAuth = useAuthStore((state) => state.checkAuth)
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
+  const setAuth = useAuthStore((state: any) => state.setAuth)
+  const clearAuth = useAuthStore((state: any) => state.clearAuth)
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
-    // Initial auth check
-    checkAuth()
-
-    // Listen to auth changes
+    // Listen to auth changes saja, checkAuth sudah dilakukan oleh Zustand store
+      checkAuth();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth event:', event)
 
         if (event === 'SIGNED_IN' && session) {
-          // Fetch role
+          // 1. Fetch role dari user_roles
           const { data: roleData } = await supabase
             .from('user_roles')
             .select('role')
             .eq('user_id', session.user.id)
             .maybeSingle()
 
+          // 2. Fetch profile dari user_profiles (tabel baru)
+          const { data: profileData } = await supabase
+            .from('user_profiles')
+            .select('full_name, photo_url')
+            .eq('user_id', session.user.id)
+            .maybeSingle()
+
           setAuth(
             session.user.email || '',
             roleData?.role || null,
-            session.user.id
+            session.user.id,
+            profileData?.full_name || null,
+            profileData?.photo_url || null
           )
         } else if (event === 'SIGNED_OUT') {
           clearAuth()
-        } else if (event === 'TOKEN_REFRESHED') {
-          checkAuth()
         }
+        // TOKEN_REFRESHED tidak perlu panggil checkAuth lagi
       }
     )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [checkAuth, setAuth, clearAuth])
+  }, [setAuth, clearAuth, checkAuth]);
 
   return <Component {...pageProps} />
 }

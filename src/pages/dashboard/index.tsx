@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/router";
 import Select from 'react-select';
-import { useAuthStore } from "@/store/authStore";
+import useAuthStore from "@/store/authStore"; // GANTI: default import, bukan named import
 
 interface Student {
   id: string;
@@ -73,7 +73,10 @@ const Dashboard: React.FC = () => {
     subjects: [],
     teacher_gender: ''
   });
-  const { userEmail } = useAuthStore();
+  
+  // GANTI: Pakai 'email' bukan 'userEmail'
+  const { email, role, isLoggedIn } = useAuthStore();
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,6 +96,22 @@ const Dashboard: React.FC = () => {
   const [currentPageTeachers, setCurrentPageTeachers] = useState(1);
   const itemsPerPage = 10;
 
+  // Check authentication and role
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    
+    // Check if user has access (admin or guru only)
+    if (role !== 'admin' && role !== 'guru') {
+      router.push('/');
+      return;
+    }
+    
+    fetchStudents();
+    fetchTeachers();
+  }, [isLoggedIn, role, router]);
 
   const fetchStudents = async () => {
     try {
@@ -126,11 +145,6 @@ const Dashboard: React.FC = () => {
       console.error('Error fetch teachers:', err);
     }
   };
-
-  useEffect(() => {
-    fetchStudents();
-    fetchTeachers();
-  }, []);
 
   // Get subjects yang sudah diambil guru lain
   const getTakenSubjects = () => {
@@ -606,7 +620,7 @@ const Dashboard: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">Daftar Kelas XI RPL 1</h1>
-          <p className="text-slate-700 text-lg">Selamat datang, <b>{userEmail}</b>!</p>
+          <p className="text-slate-700 text-lg">Selamat datang, <b>{email}</b>! <span className="text-teal-600 font-medium">({role})</span></p>
         </div>
 
         {error && (

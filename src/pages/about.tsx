@@ -260,77 +260,7 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Class Structure */}
-        <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-3xl p-10 mb-12 shadow-2xl">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
-            👔 Struktur Organisasi Kelas
-          </h2>
 
-          <div className="max-w-4xl mx-auto flex flex-col items-center">
-            {/* WALI KELAS */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 mb-3 border-2 border-white/30">
-              <p className="text-white text-sm mb-1 text-center">Wali Kelas</p>
-              <p className="font-bold text-white text-xl">Latifah S.Pd</p>
-            </div>
-
-            <div className="w-1 h-12 bg-white/50"></div>
-            <div className="w-72 h-1 bg-white/50"></div>
-
-            <div className="flex gap-[260px]">
-              <div className="w-1 h-8 bg-white/50"></div>
-              <div className="w-1 h-8 bg-white/50"></div>
-            </div>
-
-            {/* KETUA & WAKIL */}
-            <div className="flex gap-40">
-              <div className="flex flex-col items-center">
-                <div className="bg-yellow-400 rounded-2xl px-8 py-4 shadow-xl border-4 border-yellow-300">
-                  <p className="text-slate-700 text-sm mb-1 text-center">Ketua Kelas</p>
-                  <p className="font-bold text-slate-900 text-lg">Aziz</p>
-                </div>
-                <div className="w-1 h-12 bg-white/50 mt-3"></div>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="bg-yellow-300 rounded-2xl px-8 py-4 shadow-xl border-4 border-yellow-200">
-                  <p className="text-slate-700 text-sm mb-1 text-center">Wakil Ketua</p>
-                  <p className="font-bold text-slate-900 text-lg">Desy</p>
-                </div>
-                <div className="w-1 h-12 bg-white/50 mt-3"></div>
-              </div>
-            </div>
-
-            <div className="w-72 h-1 bg-white/50"></div>
-
-            <div className="flex gap-[260px]">
-              <div className="w-1 h-8 bg-white/50"></div>
-              <div className="w-1 h-8 bg-white/50"></div>
-            </div>
-
-            {/* SEKRETARIS & BENDAHARA */}
-            <div className="flex gap-40">
-              <div className="flex flex-col items-center">
-                <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-xl mb-3">
-                  <p className="text-slate-700 text-sm mb-1 text-center">Sekretaris</p>
-                  <div className="space-y-2">
-                    <p className="font-semibold text-slate-900 text-center">Ling</p>
-                    <p className="font-semibold text-slate-900 text-center">Vina</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="bg-white/90 rounded-2xl px-6 py-3 shadow-xl mb-3">
-                  <p className="text-slate-700 text-sm mb-1 text-center">Bendahara</p>
-                  <div className="space-y-2">
-                    <p className="font-semibold text-slate-900 text-center">Fatah</p>
-                    <p className="font-semibold text-slate-900 text-center">Afif</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Schedule */}
         <div className="bg-white rounded-3xl p-10 shadow-lg mb-12">
