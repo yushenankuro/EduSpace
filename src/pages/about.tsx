@@ -451,30 +451,58 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Class Motto / Vision */}
-        <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 p-10 md:p-14 shadow-2xl text-white transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          {/* Animated background elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-400/20 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl"></div>
-          
-          <div className="relative z-10 text-center">
-            <div className="text-7xl mb-6 animate-float">💡</div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-200">
-              Visi Kelas
-            </h2>
-            <p className="text-xl md:text-2xl max-w-4xl mx-auto italic leading-relaxed mb-10">
-              "Menjadi kelas yang unggul dalam teknologi, kreatif dalam inovasi, dan solid dalam kekeluargaan. 
-              Bersama membangun masa depan digital Indonesia yang lebih baik!"
-            </p>
-            <div className="flex justify-center gap-6 flex-wrap">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-8 py-4 hover:bg-white/30 transition-all duration-300 hover:scale-110">
-                <p className="font-bold text-lg">🎯 Inovatif</p>
+{/* Vision & Mission Section */}
+        <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'} space-y-0`}>
+          {/* Header Section */}
+          <div className="bg-gradient-to-br from-slate-50 to-white rounded-t-3xl p-12 md:p-16 shadow-xl">
+            <div className="flex items-center justify-between flex-wrap gap-8">
+              <div className="flex-1 min-w-[300px]">
+                <h2 className="text-5xl md:text-6xl font-black text-slate-900 mb-4">
+                  Our Mission
+                  <br />
+                  & Vision
+                </h2>
+                <div className="w-24 h-1.5 bg-gradient-to-r from-green-500 to-teal-500 rounded-full"></div>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-8 py-4 hover:bg-white/30 transition-all duration-300 hover:scale-110" style={{transitionDelay: '0.1s'}}>
-                <p className="font-bold text-lg">💪 Kolaboratif</p>
+            </div>
+          </div>
+
+          {/* Mission Section */}
+          <div className="bg-gradient-to-br from-white to-slate-50 p-12 md:p-16 shadow-xl">
+            <div className="flex items-center justify-between flex-wrap gap-8">
+              <div className="flex-1 min-w-[300px] order-2 md:order-1">
+                <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Mission</h3>
+                <div className="space-y-3 text-slate-700">
+                  <p className="leading-relaxed">• Menyelenggarakan pembelajaran berbasis teknologi</p>
+                  <p className="leading-relaxed">• Mengembangkan keterampilan programming</p>
+                  <p className="leading-relaxed">• Membangun jiwa kewirausahaan</p>
+                  <p className="leading-relaxed">• Menerapkan nilai kejujuran dan disiplin</p>
+                  <p className="leading-relaxed">• Menciptakan lingkungan belajar kondusif</p>
+                </div>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-8 py-4 hover:bg-white/30 transition-all duration-300 hover:scale-110" style={{transitionDelay: '0.2s'}}>
-                <p className="font-bold text-lg">🚀 Progresif</p>
+              
+              <div className="w-64 h-64 rounded-full overflow-hidden shadow-2xl ring-8 ring-white/50 order-1 md:order-2">
+                <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vision Section */}
+          <div className="bg-gradient-to-br from-slate-50 to-white rounded-b-3xl p-12 md:p-16 shadow-xl">
+            <div className="flex items-center justify-between flex-wrap gap-8">
+              <div className="w-64 h-64 rounded-full overflow-hidden shadow-2xl ring-8 ring-white/50">
+                <div className="w-full h-full bg-gradient-to-br from-green-100 to-teal-100 flex items-center justify-center">
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-[300px]">
+                <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Vision</h3>
+                <div className="space-y-3 text-slate-700">
+                  <p className="leading-relaxed">• Menjadi kelas unggul dalam Rekayasa Perangkat Lunak</p>
+                  <p className="leading-relaxed">• Menghasilkan lulusan yang kompeten dan inovatif</p>
+                  <p className="leading-relaxed">• Membangun karakter berakhlak mulia</p>
+                </div>
               </div>
             </div>
           </div>

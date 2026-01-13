@@ -183,7 +183,6 @@ const Navbar: React.FC = () => {
                               : "text-gray-300"
                           }`}
                         >
-                          <span>📋</span>
                           <span>Daftar Siswa & Guru</span>
                         </Link>
                         <Link
@@ -194,7 +193,6 @@ const Navbar: React.FC = () => {
                               : "text-gray-300"
                           }`}
                         >
-                          <span>📊</span>
                           <span>Nilai & Rapor</span>
                         </Link>
                       </div>
@@ -208,7 +206,7 @@ const Navbar: React.FC = () => {
             <div className="flex items-center gap-3 ml-auto md:ml-0">
               {isLoggedIn ? (
                 <>
-                  {/* Profile Desktop */}
+                  {/* Profile Desktop - SEMUA ROLE BISA AKSES */}
                   <div 
                     className="hidden md:block relative"
                     onMouseEnter={() => setIsProfileOpen(true)}
@@ -467,7 +465,7 @@ const Navbar: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sidebar Footer - User Info */}
+                {/* Sidebar Footer - User Info - SEMUA ROLE BISA AKSES */}
                 {isLoggedIn && (
                   <div className="p-4 border-t border-slate-600">
                     <div className="flex items-center gap-3 mb-3">

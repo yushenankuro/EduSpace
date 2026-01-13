@@ -124,7 +124,7 @@ const Register: React.FC = () => {
       <div className="flex justify-center items-center min-h-[calc(100vh-64px)] p-8">
         <div className="flex bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl animate-slide-up">
           {/* Bagian Kiri: Gambar Gradient dengan Teks */}
-          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-10 flex-col justify-center text-white relative overflow-hidden">
+          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-300 via-lavender-200 to-rose-100 p-10 flex-col justify-center text-white relative overflow-hidden">
             <div className="relative z-10">
               <h1 className="text-4xl font-bold mb-4 animate-fade-in">Bergabung Bersama Kami!</h1>
               <p className="text-lg opacity-90 animate-fade-in-delay">Daftar sekarang dan mulai petualangan belajar Anda</p>
