@@ -96,24 +96,28 @@ const SubjectPage: React.FC = () => {
     fetchTeachers();
   }, []);
 
-  // Animation variants
+  // Animation variants - PERBAIKAN DI SINI
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.1,
+        delayChildren: 0.2
       }
     }
   };
 
   const subjectCardVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { 
+      opacity: 0, 
+      y: 30 
+    },
     visible: { 
       opacity: 1, 
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 12
       }
@@ -123,7 +127,7 @@ const SubjectPage: React.FC = () => {
       scale: 1.05,
       boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 400,
         damping: 25
       }
@@ -131,7 +135,10 @@ const SubjectPage: React.FC = () => {
   };
 
   const materialCardVariants = {
-    hidden: { opacity: 0, x: -50 },
+    hidden: { 
+      opacity: 0, 
+      x: -50 
+    },
     visible: { 
       opacity: 1, 
       x: 0,
@@ -265,7 +272,7 @@ const SubjectPage: React.FC = () => {
       'Pemrograman Mobile': '📱',
       'Pemrograman Desktop': '🖥️',
       'Basis Data': '🗄️',
-      'PJOK': '🏃‍♂️',
+      'PJOK': '🏃',
       'Seni Budaya': '🎨',
       'PKN': '⚖️',
       'Pendidikan Agama': '🕌',
@@ -539,10 +546,7 @@ const SubjectPage: React.FC = () => {
                               </div>
                               
                               <h3 className="text-2xl font-bold mb-2">{subject.name}</h3>
-                              <p className="text-white/90 text-sm flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse"></span>
-                                Pengajar: {subject.teacher}
-                              </p>
+                              {/* Teks "Pengajar" DIHAPUS dari sini */}
                             </div>
                           </div>
 
@@ -561,6 +565,12 @@ const SubjectPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
+                          </div>
+
+                          {/* Teacher Name - DIPINDAHKAN ke sini */}
+                          <div className="px-6 mb-4 text-center">
+                            <p className="text-slate-500 text-sm font-medium mb-1">Pengajar:</p>
+                            <p className="text-slate-800 font-semibold text-lg">{subject.teacher}</p>
                           </div>
 
                           {/* Action Button */}
@@ -715,17 +725,27 @@ const SubjectPage: React.FC = () => {
                     </motion.div>
 
                     {/* Materials List */}
-                    <motion.div
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="space-y-4"
-                    >
+                    <div className="space-y-4">
                       {subject.materials.map((material, index) => (
                         <motion.div
                           key={material.id}
-                          variants={materialCardVariants}
-                          whileHover="hover"
+                          initial={{ opacity: 0, x: -50 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 15,
+                            delay: index * 0.1
+                          }}
+                          whileHover={{ 
+                            x: 10,
+                            backgroundColor: "#f8fafc",
+                            transition: {
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 25
+                            }
+                          }}
                           className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 hover:border-slate-200 transition-all duration-300"
                         >
                           <div className="flex items-start gap-6">
@@ -798,7 +818,7 @@ const SubjectPage: React.FC = () => {
                           </div>
                         </motion.div>
                       ))}
-                    </motion.div>
+                    </div>
                   </div>
                 ))}
             </motion.div>
