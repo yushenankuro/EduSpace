@@ -40,7 +40,6 @@ const Register: React.FC = () => {
       return;
     }
 
-
     try {
       // REGISTER MENGGUNAKAN SUPABASE AUTH
       const { data, error: authError } = await supabase.auth.signUp({
@@ -65,76 +64,148 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="bg-gradient-to-b from-sky-300 to-sky-400 min-h-screen">
       <Navbar />
+      <style jsx>{`
+        @keyframes slide-up {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes fade-in-delay {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.6s ease-out;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out;
+        }
+        
+        .animate-fade-in-delay {
+          animation: fade-in-delay 0.8s ease-out 0.2s both;
+        }
+        
+        input:focus {
+          transform: scale(1.01);
+          transition: transform 0.2s ease;
+        }
+        
+        button:active {
+          transform: scale(0.98);
+        }
+      `}</style>
       <div className="flex justify-center items-center min-h-[calc(100vh-64px)] p-8">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-
-          <h2 className="text-2xl font-bold mb-6">Daftar Akun Baru</h2>
-
-          {error && (
-            <div className="bg-red-500 text-white p-3 rounded mb-4">
-              {error}
+        <div className="flex bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl animate-slide-up">
+          {/* Bagian Kiri: Gambar Gradient dengan Teks */}
+          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-10 flex-col justify-center text-white relative overflow-hidden">
+            <div className="relative z-10">
+              <h1 className="text-4xl font-bold mb-4 animate-fade-in">Bergabung Bersama Kami!</h1>
+              <p className="text-lg opacity-90 animate-fade-in-delay">Daftar sekarang dan mulai petualangan belajar Anda</p>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-                disabled={loading}
-                minLength={6}
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-gray-700 mb-2">Konfirmasi Password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 disabled:opacity-50"
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Daftar'}
-            </button>
-          </form>
-
-          <div className="text-center mt-4">
-            Sudah punya akun?{' '}
-            <Link href="/login" className="text-blue-500 hover:underline">
-              Login di sini
-            </Link>
           </div>
 
+          {/* Bagian Kanan: Form Registrasi */}
+          <div className="w-full md:w-1/2 p-8 animate-fade-in">
+            <h2 className="text-3xl font-bold text-slate-800 text-center mb-2">Daftar Akun Baru</h2>
+            <p className="text-slate-600 text-center mb-6">
+              Buat akun untuk memulai pembelajaran
+            </p>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-slate-700 font-medium mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="nama@email.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-medium mb-2">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-medium mb-2">Konfirmasi Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="••••••••"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+                disabled={loading}
+              >
+                {loading ? 'Memproses...' : 'Daftar'}
+              </button>
+            </form>
+
+            <div className="text-center mt-6 pt-6 border-t border-gray-200">
+              <p className="text-slate-600">
+                Sudah punya akun?{' '}
+                <Link href="/login" className="text-green-600 hover:text-green-700 font-medium">
+                  Login di sini
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

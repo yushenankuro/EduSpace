@@ -4,12 +4,11 @@ const Footer = () => {
   return (
     <div className="relative mt-16 bg-deep-purple-accent-400">
       {/* Wave */}
-<svg
-  className="absolute top-0 w-full h-6 -mt-5 sm:-mt-10 sm:h-16 text-sky-300"
-  preserveAspectRatio="none"
-  viewBox="0 0 1440 54"
->
-
+      <svg
+        className="absolute top-0 w-full h-6 -mt-5 sm:-mt-10 sm:h-16 text-sky-300"
+        preserveAspectRatio="none"
+        viewBox="0 0 1440 54"
+      >
         <path
           fill="currentColor"
           d="M0 22L120 16.7C240 11 480 1.00001 720 0.700012C960 1.00001 1200 11 1320 16.7L1440 22V54H1320C1200 54 960 54 720 54C480 54 240 54 120 54H0V22Z"
@@ -57,37 +56,64 @@ const Footer = () => {
               </p>
             </div>
           </div>
+
+          {/* Follow Us Section - Kanan */}
+          <div className="md:max-w-md lg:col-span-2 lg:col-start-5">
+            <span className="text-base font-semibold tracking-wide text-gray-100">
+              Follow Us
+            </span>
+            <p className="mt-2 text-sm text-deep-purple-50 mb-4">
+              Ikuti kami di media sosial untuk update terbaru
+            </p>
+            
+            <div className="flex items-center space-x-4">
+              {/* Instagram */}
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-100 transition-colors duration-300 hover:text-pink-400"
+                aria-label="Instagram"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                </svg>
+              </a>
+
+              {/* YouTube */}
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-100 transition-colors duration-300 hover:text-red-500"
+                aria-label="YouTube"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
+                </svg>
+              </a>
+
+              {/* TikTok */}
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-100 transition-colors duration-300 hover:text-pink-500"
+                aria-label="TikTok"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                </svg>
+              </a>
+            </div>
+          </div>
         </div>
 
         {/* Bottom */}
         <div className="flex flex-col justify-between pt-5 pb-10 border-t border-deep-purple-accent-200 sm:flex-row">
           <p className="text-sm text-gray-100">
-            ©  2025 Kelas XI RPL 1
+            © 2024-2026 Kelas XI RPL 1
           </p>
-
-          <div className="flex items-center mt-4 space-x-4 sm:mt-0">
-
-            {/* Instagram */}
-            <Link
-              href="/"
-              className="transition-colors duration-300 text-deep-purple-100 hover:text-teal-accent-400"
-            >
-              <svg viewBox="0 0 30 30" fill="currentColor" className="h-6">
-                <circle cx="15" cy="15" r="4" />
-                <path d="M19.999,3h-10C6.14,3,3,6.141,3,10.001v10C3,23.86,6.141,27,10.001,27h10C23.86,27,27,23.859,27,19.999v-10C27,6.14,23.859,3,19.999,3z" />
-              </svg>
-            </Link>
-
-            {/* Facebook */}
-            <Link
-              href="/"
-              className="transition-colors duration-300 text-deep-purple-100 hover:text-teal-accent-400"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="h-5">
-                <path d="M22,0H2C0.895,0,0,0.895,0,2v20c0,1.105,0.895,2,2,2h11v-9h-3v-4h3V8.413c0-3.1,1.893-4.788,4.659-4.788c1.325,0,2.463,0.099,2.795,0.143v3.24l-1.918,0.001c-1.504,0-1.795,0.715-1.795,1.763V11h4.44l-1,4h-3.44v9H22c1.105,0,2-0.895,2-2V2C24,0.895,23.105,0,22,0z" />
-              </svg>
-            </Link>
-          </div>
         </div>
       </div>
     </div>
