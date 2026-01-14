@@ -14,18 +14,22 @@ const Navbar: React.FC = () => {
   const { isLoggedIn, email, role, photoUrl, fullName, logout } = useAuthStore();
 
   // Check screen size on mount and resize
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    
-    return () => {
-      window.removeEventListener('resize', checkIfMobile);
-    };
-  }, []);
+// Ganti useEffect dengan ini
+useEffect(() => {
+  const checkIfMobile = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  // Set initial state
+  checkIfMobile();
+
+  // Add event listener
+  window.addEventListener('resize', checkIfMobile);
+  
+  return () => {
+    window.removeEventListener('resize', checkIfMobile);
+  };
+}, []);
 
   const handleLogout = async () => {
     await logout();
@@ -46,14 +50,18 @@ const Navbar: React.FC = () => {
     return role === 'admin' || role === 'guru';
   };
 
-  // Generate avatar URL
-  const getAvatarUrl = () => {
-    if (photoUrl) return photoUrl;
-    
-    const name = fullName || email?.split("@")[0] || "User";
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
-  };
+// Gunakan useMemo untuk avatar URL
+const avatarUrl = React.useMemo(() => {
+  if (photoUrl) return photoUrl;
+  
+  const name = fullName || email?.split("@")[0] || "User";
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0ea5e9&color=fff&size=128&bold=true`;
+}, [photoUrl, fullName, email]);
 
+const displayName = React.useMemo(() => {
+  if (fullName) return fullName;
+  return email || "User";
+}, [fullName, email]);
   // Display name untuk profile dropdown
   const getDisplayName = () => {
     if (fullName) return fullName;
@@ -215,8 +223,8 @@ const Navbar: React.FC = () => {
                     <div className="flex items-center gap-2 cursor-pointer">
                       <div className="relative">
                         <img
-                          src={getAvatarUrl()}
-                          alt={getDisplayName()}
+                          src={avatarUrl}
+                          alt={displayName}
                           className="w-9 h-9 rounded-full border-2 border-teal-400 hover:border-teal-300 transition-all object-cover"
                           onError={(e) => {
                             const name = fullName || email?.split("@")[0] || "User";
@@ -243,8 +251,8 @@ const Navbar: React.FC = () => {
                           <div className="px-4 py-3 border-b border-slate-600">
                             <div className="flex items-center gap-3">
                               <img
-                                src={getAvatarUrl()}
-                                alt={getDisplayName()}
+                                src={avatarUrl}
+                                alt={displayName}
                                 className="w-12 h-12 rounded-full object-cover border-2 border-teal-400"
                                 onError={(e) => {
                                   const name = fullName || email?.split("@")[0] || "User";
@@ -309,8 +317,8 @@ const Navbar: React.FC = () => {
                   {/* Profile Mobile - Simple Avatar */}
                   <div className="md:hidden">
                     <img
-                      src={getAvatarUrl()}
-                      alt={getDisplayName()}
+                      src={avatarUrl}
+                      alt={displayName}
                       className="w-9 h-9 rounded-full border-2 border-teal-400 object-cover"
                       onError={(e) => {
                         const name = fullName || email?.split("@")[0] || "User";
@@ -470,7 +478,7 @@ const Navbar: React.FC = () => {
                   <div className="p-4 border-t border-slate-600">
                     <div className="flex items-center gap-3 mb-3">
                       <img
-                        src={getAvatarUrl()}
+                        src={avatarUrl}
                         alt={getDisplayName()}
                         className="w-10 h-10 rounded-full border-2 border-teal-400 object-cover"
                       />

@@ -42,7 +42,7 @@ const Footer = () => {
               </div>
               <div>
                 <Link
-                  href="/"
+                  href="https://smkn4-tng.sch.id/"
                   className="inline-flex items-center group/logo"
                   aria-label="SMKN 4 Kota Tangerang"
                 >

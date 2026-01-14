@@ -56,15 +56,9 @@ const GalleryImage = ({
 }: any) => {
   const [error, setError] = useState(false);
 
-  // Fallback khusus untuk gallery
-  const getFallbackImage = () => {
-    // Fallback ke placeholder yang cocok untuk gallery
-    return "/images/gallery-placeholder.jpg";
-  };
-
   return (
     <Image
-      src={error ? getFallbackImage() : src}
+      src={error ? "/images/gallery-placeholder.jpg" : src}
       alt={alt}
       onError={() => setError(true)}
       {...props}
@@ -77,7 +71,7 @@ const About: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<"mission" | "vision">("mission");
 
-  // Gallery photos data - FOTO GALLERY YANG BEDA DARI HERO!
+  // Gallery photos data
   const galleryPhotos: GalleryPhoto[] = [
     {
       title: "Kegiatan Belajar Mengajar",
@@ -141,7 +135,7 @@ const About: React.FC = () => {
     {
       day: "Monday",
       dayIndo: "Senin",
-      color: "from-rose-400 to-red-300",
+      color: "from-indigo-900 to-sky-600",
       subjects: [
         { name: "Mapil", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -153,7 +147,7 @@ const About: React.FC = () => {
     {
       day: "Tuesday",
       dayIndo: "Selasa",
-      color: "from-amber-400 to-orange-300",
+      color: "from-indigo-900 to-sky-600",
       subjects: [
         { name: "P.K.K", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -166,7 +160,7 @@ const About: React.FC = () => {
     {
       day: "Wednesday",
       dayIndo: "Rabu",
-      color: "from-emerald-400 to-teal-300",
+      color: "from-indigo-900 to-sky-600",
       subjects: [
         { name: "Opsih", time: "08.00-09.20" },
         { name: "Basis Data", time: "09.20-11.00" },
@@ -178,7 +172,7 @@ const About: React.FC = () => {
     {
       day: "Thursday",
       dayIndo: "Kamis",
-      color: "from-sky-400 to-cyan-300",
+      color: "from-indigo-900 to-sky-600",
       subjects: [
         { name: "Pemrograman Desktop", time: "08.00-10.00" },
         { name: "Bahasa Inggris", time: "10.00-11.00" },
@@ -189,7 +183,7 @@ const About: React.FC = () => {
     {
       day: "Friday",
       dayIndo: "Jumat",
-      color: "from-violet-400 to-purple-300",
+      color: "from-indigo-900 to-sky-600",
       subjects: [
         { name: "Mulok", time: "08.00-09.20" },
         { name: "Istirahat", time: "09.20-10.00" },
@@ -235,36 +229,36 @@ const About: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
       <Navbar />
 
-      {/* Hero Banner */}
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      {/* Hero Banner - FIXED LAYOUT */}
+      <div className={`w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 animate-fadeInUp">
           {/* Teks di Kiri */}
-          <div className="lg:w-1/2 text-center lg:text-left">
+          <div className="lg:w-1/2 text-center lg:text-left w-full">
             <div className="relative inline-block mb-4 animate-slideInLeft">
-              <h1 className="text-4xl md:text-5xl lg:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 HELLO, WE ARE
               </h1>
               <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-expandWidth"></div>
             </div>
             
-<h2 className="text-3xl md:text-4xl lg:text-7xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent mb-6 animate-slideInLeft animation-delay-200">
-  XI RPL 1
-</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-7xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent mb-6 animate-slideInLeft animation-delay-200">
+              XI RPL 1
+            </h2>
             
-            <p className="text-lg md:text-xl bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-8 leading-relaxed animate-slideInLeft animation-delay-400">
+            <p className="text-base sm:text-lg md:text-xl bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-8 leading-relaxed animate-slideInLeft animation-delay-400">
               Kelas unggulan dengan fokus pada pengembangan software, web development, dan teknologi terkini. 
               Bersama membangun masa depan digital Indonesia!
             </p>
             
             {/* Tech Stack Badges */}
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-start animate-slideInLeft animation-delay-600">
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center lg:justify-start animate-slideInLeft animation-delay-600">
               {['Web Development', 'Mobile Apps', 'UI/UX Design', 'Database', 'Cloud Computing'].map((tech, idx) => (
                 <div 
                   key={tech}
-                  className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-all duration-300 animate-float hover:scale-110 cursor-pointer"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 hover:bg-white/20 transition-all duration-300 animate-float hover:scale-110 cursor-pointer"
                   style={{ animationDelay: `${idx * 0.1}s` }}
                 >
-                  <span className="font-medium text-black flex items-center gap-2">
+                  <span className="font-medium text-black text-sm sm:text-base flex items-center gap-1 sm:gap-2">
                     {tech === 'Web Development' && '🌐'}
                     {tech === 'Mobile Apps' && '📱'}
                     {tech === 'UI/UX Design' && '🎨'}
@@ -278,14 +272,13 @@ const About: React.FC = () => {
           </div>
 
           {/* Gambar Blob Shape di Kanan */}
-          <div className="lg:w-1/2 relative animate-slideInRight">
-            {/* Blob Background */}
+          <div className="lg:w-1/2 relative animate-slideInRight w-full mt-8 lg:mt-0">
             <div className="relative w-full max-w-md mx-auto">
               {/* Animated Blob Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-[40%] blur-3xl animate-pulse"></div>
               
               {/* Main Blob Container */}
-              <div className="relative w-80 h-80 md:w-96 md:h-96 mx-auto hover:scale-105 transition-transform duration-500">
+              <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 mx-auto hover:scale-105 transition-transform duration-500">
                 {/* Blob Shape Mask */}
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 via-blue-600 to-purple-600 rounded-full animate-blobMove"
                   style={{
@@ -311,36 +304,36 @@ const About: React.FC = () => {
         </div>
 
         {/* Class Achievements */}
-        <div className={`mt-20 mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-center mb-10 animate-fadeInDown">
+        <div className={`mt-16 sm:mt-20 mb-12 sm:mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="text-center mb-8 sm:mb-10 animate-fadeInDown">
             <div className="inline-flex items-center gap-3 mb-4 animate-bounce-slow">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-2xl">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-xl sm:text-2xl">
                 🏆
               </div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 Prestasi Kelas
               </h2>
             </div>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
               Pencapaian luar biasa yang telah diraih oleh siswa-siswa XI RPL 1
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {achievements.map((achievement, idx) => (
               <div 
                 key={idx}
-                className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-xl transition-all duration-700 hover:scale-105 hover:rotate-1 cursor-pointer ${isVisible ? 'opacity-100 translate-y-0 animate-zoomIn' : 'opacity-0 translate-y-8'}`}
+                className={`relative overflow-hidden rounded-2xl p-4 sm:p-6 text-white shadow-xl transition-all duration-700 hover:scale-105 hover:rotate-1 cursor-pointer ${isVisible ? 'opacity-100 translate-y-0 animate-zoomIn' : 'opacity-0 translate-y-8'}`}
                 style={{transitionDelay: `${idx * 150}ms`, animationDelay: `${idx * 0.1}s`}}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${achievement.bgColor}`}></div>
                 <div className="relative z-10">
-                  <div className="text-5xl mb-4 animate-float" style={{animationDelay: `${idx * 0.1}s`}}>
+                  <div className="text-4xl sm:text-5xl mb-3 sm:mb-4 animate-float" style={{animationDelay: `${idx * 0.1}s`}}>
                     {achievement.icon}
                   </div>
-                  <h3 className="font-bold text-xl mb-2">{achievement.title}</h3>
-                  <div className="text-sm opacity-90 mb-2">{achievement.desc}</div>
-                  <div className="text-lg font-semibold bg-white/20 backdrop-blur-sm rounded-full px-4 py-1 inline-block">
+                  <h3 className="font-bold text-lg sm:text-xl mb-2">{achievement.title}</h3>
+                  <div className="text-xs sm:text-sm opacity-90 mb-2">{achievement.desc}</div>
+                  <div className="text-base sm:text-lg font-semibold bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 sm:px-4 sm:py-1 inline-block">
                     {achievement.year}
                   </div>
                 </div>
@@ -349,27 +342,26 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Gallery Section */}
-        <div className={`mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-center mb-10 animate-fadeInDown">
+        {/* Gallery Section - FIXED CAROUSEL */}
+        <div className={`mb-12 sm:mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="text-center mb-8 sm:mb-10 animate-fadeInDown">
             <div className="inline-flex items-center gap-3 mb-4 animate-bounce-slow">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-2xl">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-xl sm:text-2xl">
                 📸
               </div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 Galeri Kenangan Kelas
               </h2>
             </div>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
               Momen-momen berharga dalam perjalanan belajar di XI RPL 1
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 animate-scaleIn">
+          <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl hover:shadow-3xl transition-all duration-500 animate-scaleIn">
             <div className="relative">
-              {/* Main Image Display */}
-              <div className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 mb-8 group shadow-lg">
-                {/* Lazy loaded gallery images - PAKAI GalleryImage BUKAN ImageWithFallback */}
+              {/* Main Image Display - FIXED HEIGHT */}
+              <div className="relative h-[250px] sm:h-[350px] md:h-[450px] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 mb-6 sm:mb-8 group shadow-lg">
                 {galleryPhotos.map((photo, index) => (
                   <div 
                     key={index}
@@ -387,53 +379,54 @@ const About: React.FC = () => {
                   </div>
                 ))}
 
-                {/* Overlay untuk teks lebih readable */}
+                {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
 
-                {/* Navigation Arrows */}
+                {/* Navigation Arrows - SMALLER ON MOBILE */}
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-xl transition-all flex items-center justify-center hover:scale-110 hover:shadow-2xl active:scale-95 z-10 animate-slideInLeft"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full shadow-xl transition-all flex items-center justify-center hover:scale-110 hover:shadow-2xl active:scale-95 z-10 animate-slideInLeft"
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-xl transition-all flex items-center justify-center hover:scale-110 hover:shadow-2xl active:scale-95 z-10 animate-slideInRight"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full shadow-xl transition-all flex items-center justify-center hover:scale-110 hover:shadow-2xl active:scale-95 z-10 animate-slideInRight"
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
 
                 {/* Slide Counter */}
-                <div className="absolute bottom-4 right-4 bg-slate-800/80 backdrop-blur-sm text-white px-3 py-1 sm:px-4 sm:py-2 rounded-full text-sm font-medium z-10">
+                <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-slate-800/80 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-1 md:px-4 md:py-2 rounded-full text-xs sm:text-sm font-medium z-10">
                   {currentSlide + 1} / {galleryPhotos.length}
                 </div>
               </div>
 
               {/* Caption */}
-              <div className="text-center mb-8 px-4 animate-fadeInUp">
-                <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3">
+              <div className="text-center mb-6 sm:mb-8 px-2 sm:px-4 animate-fadeInUp">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-2 sm:mb-3">
                   {galleryPhotos[currentSlide].title}
                 </h3>
-                <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+                <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
                   {galleryPhotos[currentSlide].description}
                 </p>
               </div>
 
-              {/* Dots Indicator */}
-              <div className="flex justify-center gap-2 sm:gap-3 flex-wrap animate-fadeInUp">
+              {/* Dots Indicator - BETTER VISIBILITY */}
+              <div className="flex justify-center gap-1 sm:gap-2 md:gap-3 flex-wrap animate-fadeInUp">
                 {galleryPhotos.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => goToSlide(index)}
-                    className={`transition-all duration-300 hover:scale-125 ${currentSlide === index
-                        ? "w-8 bg-gradient-to-r from-teal-500 to-blue-500 animate-pulse"
-                        : "w-2 bg-slate-300 hover:bg-slate-400"
-                      } h-2 rounded-full`}
+                    className={`transition-all duration-300 hover:scale-125 ${
+                      currentSlide === index
+                        ? "w-6 sm:w-8 h-2 sm:h-2 bg-gradient-to-r from-teal-500 to-blue-500 animate-pulse"
+                        : "w-2 sm:w-2 h-2 sm:h-2 bg-slate-300 hover:bg-slate-400"
+                    } rounded-full`}
                   />
                 ))}
               </div>
@@ -442,52 +435,54 @@ const About: React.FC = () => {
         </div>
 
         {/* Schedule */}
-        <div className={`bg-white rounded-3xl p-8 md:p-12 shadow-2xl mb-16 transition-all duration-1000 hover:shadow-3xl ${isVisible ? 'opacity-100 animate-scaleIn' : 'opacity-0'}`}>
-          <div className="text-center mb-12 animate-fadeInDown">
+        <div className={`bg-white rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12 shadow-2xl mb-12 sm:mb-16 transition-all duration-1000 hover:shadow-3xl ${isVisible ? 'opacity-100 animate-scaleIn' : 'opacity-0'}`}>
+          <div className="text-center mb-8 sm:mb-12 animate-fadeInDown">
             <div className="inline-flex items-center gap-3 mb-4 animate-bounce-slow">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-2xl">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-xl sm:text-2xl">
                 📅
               </div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 Jadwal Pelajaran Mingguan
               </h2>
             </div>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
               Rencana pembelajaran untuk seminggu ke depan
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-5 md:grid-cols-3 sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
             {weeklySchedule.map((day, index) => (
               <div
                 key={index}
-                className={`rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:rotate-1 cursor-pointer ${isVisible ? 'opacity-100 animate-zoomIn' : 'opacity-0'}`}
+                className={`rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer ${isVisible ? 'opacity-100 animate-zoomIn' : 'opacity-0'}`}
                 style={{transitionDelay: `${index * 100}ms`, animationDelay: `${index * 0.15}s`}}
               >
                 {/* Day Header with gradient */}
-                <div className={`bg-gradient-to-br ${day.color} text-white text-center py-5 px-4`}>
-                  <h3 className="text-2xl font-bold">{day.dayIndo}</h3>
-                  <p className="text-sm opacity-90 mt-1">{day.day}</p>
+                <div className={`bg-gradient-to-br ${day.color} text-white text-center py-4 sm:py-5 px-3 sm:px-4`}>
+                  <h3 className="text-xl sm:text-2xl font-bold">{day.dayIndo}</h3>
+                  <p className="text-xs sm:text-sm opacity-90 mt-1">{day.day}</p>
                 </div>
 
                 {/* Subjects List */}
-                <div className="p-4 bg-gradient-to-b from-slate-50 to-white space-y-3 min-h-[280px]">
+                <div className="p-3 sm:p-4 bg-gradient-to-b from-slate-50 to-white space-y-2 sm:space-y-3 min-h-[240px] sm:min-h-[280px]">
                   {day.subjects.map((subject, idx) => (
                     <div
                       key={idx}
-                      className={`${subject.name === "Istirahat"
+                      className={`${
+                        subject.name === "Istirahat"
                           ? "bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400"
                           : "bg-white border-l-4 border-slate-200"
-                        } rounded-xl p-4 hover:shadow-md transition-all duration-300 hover:scale-[1.02]`}
+                      } rounded-xl p-3 sm:p-4 hover:shadow-md transition-all duration-300`}
                     >
-                      <p className={`font-semibold text-sm ${subject.name === "Istirahat"
+                      <p className={`font-semibold text-xs sm:text-sm ${
+                        subject.name === "Istirahat"
                           ? "text-amber-800"
                           : "text-slate-800"
-                        }`}>
+                      }`}>
                         {subject.name === "Istirahat" ? "☕ " : "📚 "}
                         {subject.name}
                       </p>
-                      <p className="text-xs text-slate-600 mt-2 flex items-center gap-1">
+                      <p className="text-xs text-slate-600 mt-1 sm:mt-2 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -501,34 +496,34 @@ const About: React.FC = () => {
           </div>
 
           {/* Notes */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 via-cyan-50 to-sky-50 border-l-4 border-blue-500 p-6 md:p-8">
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full opacity-20"></div>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 via-cyan-50 to-sky-50 border-l-4 border-blue-500 p-4 sm:p-6 md:p-8">
+            <div className="absolute -right-8 -bottom-8 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full opacity-20"></div>
             <div className="relative z-10">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-white">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-white">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800 text-lg mb-3">
+                  <p className="font-bold text-slate-800 text-base sm:text-lg mb-2 sm:mb-3">
                     📌 Catatan Penting:
                   </p>
-                  <ul className="text-slate-600 space-y-2">
+                  <ul className="text-slate-600 text-sm sm:text-base space-y-1 sm:space-y-2">
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 sm:mt-2 flex-shrink-0"></div>
                       <span>Setiap pelajaran di Lab wajib menggunakan wearpack</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 sm:mt-2 flex-shrink-0"></div>
                       <span>Hari Rabu: Datang lebih awal untuk kegiatan Opsih</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 sm:mt-2 flex-shrink-0"></div>
                       <span>Warna kuning menandakan waktu istirahat</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                      <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 sm:mt-2 flex-shrink-0"></div>
                       <span>Jangan lupa bawa laptop untuk mata pelajaran praktik</span>
                     </li>
                   </ul>
@@ -538,163 +533,128 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Vision & Mission Section */}
-        <div className={`mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-center mb-12 animate-fadeInDown">
+        {/* Vision & Mission Section - FIXED FOR MOBILE */}
+        <div className={`mb-12 sm:mb-16 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="text-center mb-8 sm:mb-12 animate-fadeInDown">
             <div className="inline-flex items-center gap-3 mb-4 animate-bounce-slow">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-2xl">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-xl sm:text-2xl">
                 💡
               </div>
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
                 Mission & Vision
               </h2>
             </div>
-            <p className="text-slate-600 max-w-2xl mx-auto">
+            <p className="text-slate-600 max-w-2xl mx-auto text-sm sm:text-base">
               Tujuan dan pandangan masa depan XI RPL 1
             </p>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex justify-center mb-10 animate-fadeInUp">
-            <div className="bg-white rounded-full p-2 shadow-lg inline-flex flex-wrap justify-center gap-2">
+          <div className="flex justify-center mb-6 sm:mb-10 animate-fadeInUp">
+            <div className="bg-white rounded-full p-1 sm:p-2 shadow-lg inline-flex flex-wrap justify-center gap-1 sm:gap-2">
               <button
                 onClick={() => setActiveTab("mission")}
-                className={`px-6 sm:px-8 py-3 rounded-full font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 ${activeTab === "mission"
+                className={`px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-full font-semibold text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 ${
+                  activeTab === "mission"
                     ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md scale-105"
                     : "text-slate-600 hover:text-blue-500"
-                  }`}
+                }`}
               >
                 Mission
               </button>
               <button
                 onClick={() => setActiveTab("vision")}
-                className={`px-6 sm:px-8 py-3 rounded-full font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 ${activeTab === "vision"
+                className={`px-4 sm:px-6 md:px-8 py-2 sm:py-3 rounded-full font-semibold text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 ${
+                  activeTab === "vision"
                     ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md scale-105"
                     : "text-slate-600 hover:text-purple-500"
-                  }`}
+                }`}
               >
                 Vision
               </button>
             </div>
           </div>
 
-          {/* Content Area */}
+          {/* Content Area - SIMPLIFIED FOR MOBILE */}
           <div className="relative">
-
-            {/* Sticky Note Container */}
-            <div className="relative flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-0">
-              {/* Mission Sticky Note */}
-              <div className={`lg:absolute lg:top-0 lg:left-0 transition-all duration-700 transform ${activeTab === "mission"
-                  ? "opacity-100 translate-x-0 rotate-0 z-10 scale-100"
-                  : "lg:opacity-0 lg:-translate-x-12 lg:-rotate-12 z-0 lg:scale-90"
-                }`}>
-                <div className="relative w-80 h-80 md:w-96 md:h-96 mx-auto lg:mx-0 hover:scale-105 transition-transform duration-500">
-                  {/* Sticky Note Paper */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-lg shadow-2xl transform lg:rotate-3 hover:shadow-3xl transition-shadow duration-300">
-                    {/* Pin */}
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 animate-bounce-slow">
-                      <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-red-600 rounded-full shadow-lg"></div>
-                      <div className="w-4 h-4 bg-white/30 rounded-full absolute inset-2"></div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="p-6 sm:p-8 h-full flex flex-col">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-white text-xl sm:text-2xl">
-                          📝
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl font-bold text-blue-800">Mission</h3>
-                      </div>
-                      
-                      <div className="space-y-4 flex-grow overflow-y-auto">
-                        {[
-                          "Menyelenggarakan pembelajaran berbasis teknologi",
-                          "Mengembangkan keterampilan programming",
-                          "Membangun jiwa kewirausahaan",
-                          "Menerapkan nilai kejujuran dan disiplin",
-                          "Menciptakan lingkungan belajar kondusif"
-                        ].map((item, idx) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0 mt-1">
-                              ✓
-                            </div>
-                            <p className="text-blue-900 text-sm sm:text-base">{item}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+            <div className={`transition-all duration-700 ${
+              activeTab === "mission" ? "block" : "hidden"
+            }`}>
+              {/* Mission Card */}
+              <div className="bg-gradient-to-br from-yellow-100 to-yellow-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl border-l-4 border-yellow-400">
+                <div className="flex items-center gap-3 sm:gap-4 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-blue-400 to-cyan-500 flex items-center justify-center text-white text-xl sm:text-2xl">
+                    📝
                   </div>
-                  
-                  {/* Shadow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-200 to-yellow-300 rounded-lg blur-md -z-10"></div>
+                  <div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-blue-800">Mission</h3>
+                    <p className="text-blue-600 text-sm sm:text-base">Tujuan yang ingin kita capai</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 sm:space-y-4">
+                  {[
+                    "Menyelenggarakan pembelajaran berbasis teknologi",
+                    "Mengembangkan keterampilan programming",
+                    "Membangun jiwa kewirausahaan",
+                    "Menerapkan nilai kejujuran dan disiplin",
+                    "Menciptakan lingkungan belajar kondusif"
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0 mt-0.5">
+                        ✓
+                      </div>
+                      <p className="text-blue-900 text-sm sm:text-base">{item}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </div>
 
-              {/* Vision Sticky Note */}
-              <div className={`lg:absolute lg:top-0 lg:right-0 transition-all duration-700 transform ${activeTab === "vision"
-                  ? "opacity-100 translate-x-0 rotate-0 z-10 scale-100"
-                  : "lg:opacity-0 lg:translate-x-12 lg:rotate-12 z-0 lg:scale-90"
-                }`}>
-                <div className="relative w-80 h-80 md:w-96 md:h-96 mx-auto lg:mx-0 hover:scale-105 transition-transform duration-500">
-                  {/* Sticky Note Paper */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-teal-100 to-cyan-50 rounded-lg shadow-2xl transform lg:-rotate-3 hover:shadow-3xl transition-shadow duration-300">
-                    {/* Pin */}
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 animate-bounce-slow">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-600 rounded-full shadow-lg"></div>
-                      <div className="w-4 h-4 bg-white/30 rounded-full absolute inset-2"></div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="p-6 sm:p-8 h-full flex flex-col">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-white text-xl sm:text-2xl">
-                          🔭
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl font-bold text-purple-800">Vision</h3>
-                      </div>
-                      
-                      <div className="space-y-6 flex-grow overflow-y-auto">
-                        {[
-                          {
-                            icon: "🎯",
-                            title: "Unggul dalam Rekayasa Perangkat Lunak",
-                            desc: "Menjadi kelas terdepan di bidang RPL"
-                          },
-                          {
-                            icon: "🎓",
-                            title: "Lulusan Kompeten & Inovatif",
-                            desc: "Menghasilkan alumni siap kerja & berinovasi"
-                          },
-                          {
-                            icon: "💖",
-                            title: "Karakter Berakhlak Mulia",
-                            desc: "Membangun pribadi yang berintegritas tinggi"
-                          }
-                        ].map((item, idx) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white flex-shrink-0">
-                              {item.icon}
-                            </div>
-                            <div>
-                              <p className="font-bold text-purple-900 mb-1 text-sm sm:text-base">{item.title}</p>
-                              <p className="text-purple-700 text-xs sm:text-sm">{item.desc}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+            <div className={`transition-all duration-700 ${
+              activeTab === "vision" ? "block" : "hidden"
+            }`}>
+              {/* Vision Card */}
+              <div className="bg-gradient-to-br from-teal-100 to-cyan-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl border-l-4 border-teal-400">
+                <div className="flex items-center gap-3 sm:gap-4 mb-6">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center text-white text-xl sm:text-2xl">
+                    🔭
                   </div>
-                  
-                  {/* Shadow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-teal-200 to-cyan-300 rounded-lg blur-md -z-10"></div>
+                  <div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-purple-800">Vision</h3>
+                    <p className="text-purple-600 text-sm sm:text-base">Pandangan masa depan kita</p>
+                  </div>
                 </div>
-              </div>
-
-              {/* Center Spacing for Desktop */}
-              <div className="h-80 md:h-96 flex items-center justify-center lg:w-96">
-                <p className="text-slate-800 text-lg text-center">
-                  {activeTab === "mission" ? "Misi kami adalah..." : "Visi kami adalah..."}
-                </p>
+                
+                <div className="space-y-4 sm:space-y-6">
+                  {[
+                    {
+                      icon: "🎯",
+                      title: "Unggul dalam Rekayasa Perangkat Lunak",
+                      desc: "Menjadi kelas terdepan di bidang RPL"
+                    },
+                    {
+                      icon: "🎓",
+                      title: "Lulusan Kompeten & Inovatif",
+                      desc: "Menghasilkan alumni siap kerja & berinovasi"
+                    },
+                    {
+                      icon: "💖",
+                      title: "Karakter Berakhlak Mulia",
+                      desc: "Membangun pribadi yang berintegritas tinggi"
+                    }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white text-lg sm:text-xl flex-shrink-0">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p className="font-bold text-purple-900 mb-1 text-sm sm:text-base">{item.title}</p>
+                        <p className="text-purple-700 text-xs sm:text-sm">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
