@@ -73,15 +73,6 @@ const Students: React.FC = () => {
       : name.substring(0, 2).toUpperCase();
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-sky-300 to-sky-400">
@@ -105,8 +96,9 @@ const Students: React.FC = () => {
         <div className="text-center mb-16 animate-fade-in">
           <div className="inline-block bg-white/20 backdrop-blur-sm px-8 py-6 rounded-2xl mb-4 transform transition-transform duration-500 hover:scale-105">
             <h1 className="text-5xl font-sans font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2 drop-shadow-lg">
-              Our Class Members
+              Siswa XI RPL 1
             </h1>
+            <p className="text-lg text-slate-700 font-medium">Anggota Kelas Teknik Rekayasa Perangkat Lunak</p>
           </div>
         </div>
 
@@ -116,7 +108,7 @@ const Students: React.FC = () => {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="🔍 Search by name or NISN..."
+                placeholder="🔍 Cari nama siswa atau NISN..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-6 py-4 border-2 border-white/40 rounded-xl focus:ring-2 focus:ring-white focus:border-white bg-white/90 backdrop-blur-sm font-sans text-sky-800 placeholder-sky-600/70 transition-all duration-300 focus:scale-[1.02]"
@@ -128,13 +120,13 @@ const Students: React.FC = () => {
               onChange={(e) => setSortBy(e.target.value as any)}
               className="md:w-64 px-6 py-4 border-2 border-white/40 rounded-xl bg-white/90 backdrop-blur-sm focus:ring-2 focus:ring-white focus:border-white font-sans text-sky-800 transition-all duration-300 hover:scale-105"
             >
-              <option value="name-asc">📷 Sort: A → Z</option>
-              <option value="name-desc">📷 Sort: Z → A</option>
+              <option value="name-asc">📷 Urutkan: A → Z</option>
+              <option value="name-desc">📷 Urutkan: Z → A</option>
             </select>
           </div>
 
           <div className="mt-6 text-center from-slate-800 to-slate-600 font-sans text-lg drop-shadow animate-pulse">
-            🎞️ Found {filteredStudents.length} of {students.length} students
+            🎞️ Ditemukan {filteredStudents.length} dari {students.length} siswa
           </div>
         </div>
 
@@ -181,7 +173,7 @@ const Students: React.FC = () => {
                           {getInitials(student.name)}
                         </span>
                         <span className="text-xs text-sky-600 font-sans">
-                          {student.jenis_kelamin === 'L' ? '♂ Male' : '♀ Female'}
+                          {student.jenis_kelamin === 'L' ? '♂ Laki-laki' : '♀ Perempuan'}
                         </span>
                       </div>
                     )}
@@ -195,25 +187,13 @@ const Students: React.FC = () => {
                       </h3>
                       <div className="flex justify-center items-center gap-2 mt-1">
                         <span className="text-xs bg-sky-100 text-sky-700 px-2 py-1 rounded-full transition-all duration-300 hover:scale-105">
-                          Class {student.class}
+                          Kelas {student.class}
                         </span>
                         <span className="text-xs text-sky-600 font-mono transition-colors duration-300 hover:text-sky-800">
                           #{student.nisn.slice(-4)}
                         </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Info Footer */}
-                <div className="space-y-2 px-2">
-                  <div className="flex items-center gap-2 text-sm text-sky-700 transition-colors duration-300 hover:text-sky-800">
-                    <span className="text-sky-600 transition-transform duration-300 hover:scale-110">📅</span>
-                    <span className="truncate">{formatDate(student.birth_date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-sky-700 transition-colors duration-300 hover:text-sky-800">
-                    <span className="text-sky-600 transition-transform duration-300 hover:scale-110">✉️</span>
-                    <span className="truncate text-xs">{student.email}</span>
                   </div>
                 </div>
 
@@ -239,13 +219,13 @@ const Students: React.FC = () => {
             <div className="inline-block bg-white/20 backdrop-blur-sm p-8 rounded-2xl">
               <div className="text-6xl mb-4 animate-bounce">📷</div>
               <p className="text-xl from-slate-800 to-slate-600 font-sans italic">
-                No students found. Try a different search.
+                Tidak ada siswa ditemukan. Coba pencarian lain.
               </p>
               <button 
                 onClick={() => setSearchTerm('')}
                 className="mt-4 px-6 py-2 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-all duration-300 hover:scale-105"
               >
-                Clear Search
+                Hapus Pencarian
               </button>
             </div>
           </div>
