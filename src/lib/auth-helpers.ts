@@ -1,12 +1,13 @@
 import { supabase } from './supabase'
 
+// auth-helpers.ts
 export const getUserRole = async () => {
   const { data: { session } } = await supabase.auth.getSession()
   
   if (!session) return null
 
   const { data } = await supabase
-    .from('user_roles')
+    .from('user_roles') // ← PASTIKAN NAMA TABEL SAMA
     .select('role')
     .eq('user_id', session.user.id)
     .single()

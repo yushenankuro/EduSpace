@@ -18,11 +18,11 @@ export default function App({ Component, pageProps }: AppProps) {
 
         if (event === 'SIGNED_IN' && session) {
           // 1. Fetch role dari user_roles
-          const { data: roleData } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .maybeSingle()
+const { data: roleData } = await supabase
+  .from('user_roles') // ← PASTIKAN NAMA TABEL SAMA
+  .select('role')
+  .eq('user_id', session.user.id)
+  .single()
 
           // 2. Fetch profile dari user_profiles (tabel baru)
           const { data: profileData } = await supabase
