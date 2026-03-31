@@ -102,49 +102,38 @@ const Dashboard: React.FC = () => {
   const [currentPageTeachers, setCurrentPageTeachers] = useState(1);
   const itemsPerPage = 10;
 
- const fetchStudents = async (signal?: AbortSignal) => {
-  try {
-    const { data, error } = await supabase
-      .from('students')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .abortSignal(signal!);
-    
-    if (error) throw error;
-    setStudents(data || []);
-  } catch (err: any) {
-    if (err.name === 'AbortError') return; // ✅ Ignore kalau memang di-abort
-    setError('Gagal memuat data siswa');
-  } finally {
-    setLoading(false);
-  }
-};
+  useEffect(() => {
+    fetchStudents();
+    fetchTeachers();
+  }, []);
 
-const fetchTeachers = async (signal?: AbortSignal) => {
-  try {
-    const { data, error } = await supabase
-      .from('teachers')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .abortSignal(signal!);
-    
-    if (error) throw error;
-    setTeachers(data || []);
-  } catch (err: any) {
-    if (err.name === 'AbortError') return; // ✅ Ignore kalau memang di-abort
-    console.error('Error fetch teachers:', err);
-  }
-};
+  const fetchStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (err: any) {
+      setError("Gagal memuat data siswa");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// Di useEffect:
-useEffect(() => {
-  const controller = new AbortController();
-  
-  fetchStudents(controller.signal);
-  fetchTeachers(controller.signal);
-  
-  return () => controller.abort(); // ✅ Cancel saat unmount
-}, []);
+  const fetchTeachers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("teachers")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      setTeachers(data || []);
+    } catch (err: any) {
+      console.error("Error fetch teachers:", err);
+    }
+  };
 
   const getTakenSubjects = () => {
     const taken: string[] = [];
