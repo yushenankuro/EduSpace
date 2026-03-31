@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Navbar from "@/components/Navbar";
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/authStore';
 import Select from 'react-select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -17,6 +18,7 @@ import {
   FaFilter,
   FaSchool
 } from 'react-icons/fa';
+
 
 interface Student {
   id: string;
@@ -59,6 +61,8 @@ const DEFAULT_CLASS = "XI RPL 1";
 
 const NilaiRaporPage: React.FC = () => {
   const router = useRouter();
+  const { user, role, isLoading } = useAuthStore();
+  
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -71,6 +75,7 @@ const NilaiRaporPage: React.FC = () => {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentOptions, setStudentOptions] = useState<SelectOption[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [authChecking, setAuthChecking] = useState(true);
   const [statistics, setStatistics] = useState<Statistics>({
     rataRata: 0,
     nilaiTertinggi: 0,

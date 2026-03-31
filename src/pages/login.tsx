@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { supabaseBrowser } from '@/lib/supabase-browser';
-import useAuthStore from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore';
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
-  const { isLoggedIn, checkAuth } = useAuthStore();
+  const { user, role, isLoading, login } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -15,12 +14,23 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
 
   // Redirect jika sudah login
-  React.useEffect(() => {
-    if (isLoggedIn) {
-      const redirect = router.query.redirect as string || '/';
-      router.push(redirect);
+  useEffect(() => {
+    console.log('LoginPage - user:', user);
+    console.log('LoginPage - role:', role);
+    console.log('LoginPage - isLoading:', isLoading);
+    
+    if (user && !isLoading) {
+      if (role === 'admin' || role === 'guru') {
+        console.log('Redirecting to dashboard');
+        router.push('/dashboard');
+      } else if (role === null) {
+        console.log('Role not set, waiting...');
+      } else {
+        console.log('Redirecting to home');
+        router.push('/');
+      }
     }
-  }, [isLoggedIn, router]);
+  }, [user, role, isLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,31 +38,21 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      const { data, error } = await supabaseBrowser.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        throw error;
+      const result = await login(email, password);
+      
+      if (result.error) {
+        throw result.error;
       }
-
-      if (data.user) {
-        // Get user role untuk menentukan redirect
-        const { data: roleData } = await supabaseBrowser
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
-
-        const role = roleData?.role;
-        
-        // Redirect berdasarkan role
-        if (role === 'admin' || role === 'guru') {
-          router.push('/dashboard');
-        } else {
-          router.push('/');
-        }
+      
+      if (result.user && (result.role === 'admin' || result.role === 'guru')) {
+        // Redirect akan ditangani oleh useEffect
+        console.log('Login successful, waiting for redirect...');
+      } else if (result.user) {
+        setError('Akun Anda tidak memiliki akses ke sistem ini');
+        // Logout jika role tidak valid
+        await useAuthStore.getState().logout();
+      } else {
+        setError('Login gagal. Periksa email dan password Anda.');
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -65,76 +65,19 @@ const LoginPage: React.FC = () => {
   return (
     <div className="bg-gradient-to-b from-sky-300 to-sky-400 min-h-screen">
       <Navbar />
-      <style jsx>{`
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        @keyframes fade-in-delay {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        
-        .animate-slide-up {
-          animation: slide-up 0.6s ease-out;
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out;
-        }
-        
-        .animate-fade-in-delay {
-          animation: fade-in-delay 0.8s ease-out 0.2s both;
-        }
-        
-        input:focus {
-          transform: scale(1.01);
-          transition: transform 0.2s ease;
-        }
-        
-        button:active {
-          transform: scale(0.98);
-        }
-      `}</style>
       <div className="flex justify-center items-center min-h-[calc(100vh-64px)] p-8">
-        <div className="flex bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden transform transition-all duration-500 hover:shadow-2xl animate-slide-up">
-          {/* Bagian Kiri: Gambar Gradient dengan Teks */}
-          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-300 via-lavender-200 to-rose-100 p-10 flex-col justify-center text-white relative overflow-hidden">
+        <div className="flex bg-white rounded-lg shadow-lg w-full max-w-4xl overflow-hidden">
+          <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-300 via-lavender-200 to-rose-100 p-10 flex-col justify-center text-white">
             <div className="relative z-10">
-              <h1 className="text-4xl font-bold mb-4 animate-fade-in">Selamat Datang!</h1>
-              <p className="text-lg opacity-90 animate-fade-in-delay">Login untuk melanjutkan pembelajaran Anda</p>
+              <h1 className="text-4xl font-bold mb-4">Selamat Datang!</h1>
+              <p className="text-lg opacity-90">Login untuk melanjutkan pembelajaran Anda</p>
             </div>
           </div>
 
-          {/* Bagian Kanan: Form Login */}
-          <div className="w-full md:w-1/2 p-8 animate-fade-in">
+          <div className="w-full md:w-1/2 p-8">
             <h2 className="text-3xl font-bold text-slate-800 text-center mb-2">Login</h2>
             <p className="text-slate-600 text-center mb-6">
-              Masuk ke akun Anda untuk mengakses konten
+              Masuk ke akun Admin / Guru
             </p>
 
             {error && (
@@ -184,11 +127,6 @@ const LoginPage: React.FC = () => {
                 Belum punya akun?{' '}
                 <Link href="/register" className="text-teal-600 hover:text-teal-700 font-medium">
                   Daftar disini
-                </Link>
-              </p>
-              <p className="text-slate-500 text-sm mt-2">
-                <Link href="/forgot-password" className="hover:text-slate-700">
-                  Lupa password?
                 </Link>
               </p>
             </div>

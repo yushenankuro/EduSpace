@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
+  
   let response = NextResponse.next({
     request: { headers: request.headers },
   })
@@ -25,23 +26,29 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 🔥 PAKAI getUser(), BUKAN getSession()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-
   const pathname = request.nextUrl.pathname
-  const isProtected =
+  
+  // Protected routes yang membutuhkan login
+  const isProtected = 
     pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/dashboard/grades') ||
+    pathname.startsWith('/students') ||
     pathname.startsWith('/subject')
+  
+  // Public routes
+  const isPublicRoute = 
+    pathname === '/' ||
+    pathname === '/about' ||
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password'
 
   // ===============================
-  // BELUM LOGIN → KE LOGIN
+  // BELUM LOGIN → KE LOGIN JIKA AKSES PROTECTED
   // ===============================
-
-
   if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
@@ -49,11 +56,45 @@ export async function middleware(request: NextRequest) {
   }
 
   // ===============================
-  // SUDAH LOGIN → JANGAN KE LOGIN
+  // SUDAH LOGIN → JANGAN KE LOGIN/REGISTER
   // ===============================
-  if (user && pathname === '/login') {
+  if (user && (pathname === '/login' || pathname === '/register' || pathname === '/forgot-password')) {
+    // Ambil role user dari database
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
 
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    const role = userRole?.role
+    
+    // Redirect berdasarkan role
+    if (role === 'admin' || role === 'guru') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    } else {
+      await supabase.auth.signOut()
+      const loginUrl = new URL('/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+
+  // ===============================
+  // VALIDASI ROLE UNTUK PROTECTED ROUTES
+  // ===============================
+  if (user && isProtected) {
+    const { data: userRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+
+    const role = userRole?.role
+    
+    if (role !== 'admin' && role !== 'guru') {
+      await supabase.auth.signOut()
+      const loginUrl = new URL('/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
   }
 
   return response
@@ -62,8 +103,10 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/grades/:path*',
+    '/students/:path*',
     '/subject/:path*',
     '/login',
+    '/register',
+    '/forgot-password',
   ],
 }

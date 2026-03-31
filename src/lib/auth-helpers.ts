@@ -1,31 +1,37 @@
-import { supabase } from './supabase'
+import { useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/router';
+import { supabase } from '@/lib/supabase';
 
-// auth-helpers.ts
-export const getUserRole = async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  
-  if (!session) return null
+type RoleGuardProps = {
+  allow: ('guru' | 'siswa' | 'admin')[];
+  children: ReactNode;
+};
 
-  const { data } = await supabase
-    .from('user_roles') // ← PASTIKAN NAMA TABEL SAMA
-    .select('role')
-    .eq('user_id', session.user.id)
-    .single()
+export default function RoleGuard({ allow, children }: RoleGuardProps) {
+  const router = useRouter();
 
-  return data?.role || null
-}
+  useEffect(() => {
+    const checkRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
 
-export const isAdmin = async () => {
-  const role = await getUserRole()
-  return role === 'admin'
-}
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
 
-export const isGuru = async () => {
-  const role = await getUserRole()
-  return role === 'guru'
-}
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-export const isSiswa = async () => {
-  const role = await getUserRole()
-  return role === 'siswa'
+      if (!data || !allow.includes(data.role)) {
+        router.replace('/403'); // atau '/'
+      }
+    };
+
+    checkRole();
+  }, [allow, router]);
+
+  return children;
 }
