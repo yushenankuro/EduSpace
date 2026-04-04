@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabaseBrowser } from '@/lib/supabase-browser-ori';
 
 interface AuthState {
   user: User | null;
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          const { data: { user }, error } = await supabase.auth.getUser();
+          const { data: { user }, error } = await supabaseBrowser.auth.getUser();
 
           if (error || !user) {
             set({ user: null, role: null, isLoading: false });
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>()(
 
       fetchUserRole: async (userId: string) => {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await supabaseBrowser
             .from('user_roles')
             .select('role')
             .eq('user_id', userId)
@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          const { data, error } = await supabase.auth.signInWithPassword({
+          const { data, error } = await supabaseBrowser.auth.signInWithPassword({
             email,
             password,
           });
@@ -105,7 +105,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          await supabase.auth.signOut();
+          await supabaseBrowser.auth.signOut();
         } catch (error) {
           console.error('Logout error:', error);
         } finally {

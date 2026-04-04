@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/router";
@@ -61,8 +61,83 @@ const allSubjects = [
   "Sejarah",
 ];
 
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  colorClass = "bg-purple-500",
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  colorClass?: string;
+}) => {
+  const getPages = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1, 2, 3);
+      if (currentPage > 5) pages.push("...");
+      if (currentPage > 4 && currentPage < totalPages - 3) {
+        pages.push(currentPage - 1, currentPage, currentPage + 1);
+      }
+      if (currentPage <= 4) pages.push(4, 5);
+      if (currentPage >= totalPages - 3)
+        pages.push(totalPages - 4, totalPages - 3);
+      if (currentPage < totalPages - 4) pages.push("...");
+      pages.push(totalPages - 2, totalPages - 1, totalPages);
+    }
+    return [...new Set(pages)];
+  };
+
+  return (
+    <div className="flex items-center gap-1 bg-transparent px-4 py-3 w-fit">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="flex items-center gap-1 px-3 py-1.5 text-sm text-slate-500 hover:text-purple-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-medium outline-none focus:outline-none"
+      >
+        ← PREV
+      </button>
+      <div className="w-px h-5 bg-slate-200 mx-1" />
+      {getPages().map((page, idx) =>
+        page === "..." ? (
+          <span key={`dots-${idx}`} className="px-2 text-slate-400">
+            ...
+          </span>
+        ) : (
+          <button
+            key={page}
+            onClick={() => onPageChange(page as number)}
+            className={`w-9 h-9 rounded-full text-sm font-medium transition-all duration-200 outline-none focus:outline-none focus:ring-0 ${
+              currentPage === page
+                ? `${colorClass} text-white scale-110`
+                : "text-slate-600 hover:text-purple-600"
+            }`}
+          >
+            {page}
+          </button>
+        ),
+      )}
+      <div className="w-px h-5 bg-slate-200 mx-1" />
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="flex items-center gap-1 px-3 py-1.5 text-sm text-purple-500 hover:text-purple-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-medium outline-none focus:outline-none"
+      >
+        NEXT →
+      </button>
+    </div>
+  );
+};
+
 const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
+  const router = useRouter();
+  
+  // AbortController ref untuk cancel request
+  // const abortControllerRef = useRef<AbortController | null>(null);
 
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -101,39 +176,91 @@ const Dashboard: React.FC = () => {
   const [currentPageStudents, setCurrentPageStudents] = useState(1);
   const [currentPageTeachers, setCurrentPageTeachers] = useState(1);
   const itemsPerPage = 10;
+  const studentAbortRef = useRef<AbortController | null>(null);
+const teacherAbortRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    fetchStudents();
-    fetchTeachers();
-  }, []);
-
-  const fetchStudents = async () => {
+  // Fetch Students dengan AbortController
+  const fetchStudents = useCallback(async () => {
+    // Cancel previous request
+    if (studentAbortRef.current) {
+      studentAbortRef.current.abort();
+    }
+    
+    // Create new AbortController
+    studentAbortRef.current = new AbortController();
+    
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from("students")
         .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
+        .order("created_at", { ascending: false })
+        .abortSignal(studentAbortRef.current.signal);
+      
+      if (error) {
+        if (error.message !== "AbortError") {
+          console.error("Supabase error fetch students:", error);
+          setError("Gagal memuat data siswa: " + error.message);
+        }
+        return;
+      }
+      
       setStudents(data || []);
     } catch (err: any) {
-      setError("Gagal memuat data siswa");
+      if (err.name !== "AbortError") {
+        console.error("Error fetch students:", err);
+        setError("Terjadi kesalahan saat memuat data siswa");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchTeachers = async () => {
+  // Fetch Teachers dengan AbortController
+  const fetchTeachers = useCallback(async () => {
+    // Cancel previous request
+    if (teacherAbortRef.current) {
+      teacherAbortRef.current.abort();
+    }
+    
+    // Create new AbortController
+    teacherAbortRef.current = new AbortController();
+    
     try {
       const { data, error } = await supabase
         .from("teachers")
         .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
+        .order("created_at", { ascending: false })
+        .abortSignal(teacherAbortRef.current.signal);
+      
+      if (error) {
+        if (error.message !== "AbortError") {
+          console.error("Supabase error fetch teachers:", error);
+          setError("Gagal memuat data guru: " + error.message);
+        }
+        return;
+      }
+      
       setTeachers(data || []);
     } catch (err: any) {
-      console.error("Error fetch teachers:", err);
+      if (err.name !== "AbortError") {
+        console.error("Error fetch teachers:", err);
+        setError("Terjadi kesalahan saat memuat data guru");
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    // Fetch data
+    fetchStudents();
+    fetchTeachers();
+    
+    // Cleanup: abort requests when component unmounts
+  return () => {
+    studentAbortRef.current?.abort();
+    teacherAbortRef.current?.abort();
   };
+  }, [fetchStudents, fetchTeachers]);
 
   const getTakenSubjects = () => {
     const taken: string[] = [];
@@ -288,7 +415,8 @@ const Dashboard: React.FC = () => {
         .from(bucket)
         .getPublicUrl(fileName);
       return urlData.publicUrl;
-    } catch {
+    } catch (err) {
+      console.error("Upload error:", err);
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(identifier)}&background=random&color=fff&size=256`;
     }
   };
@@ -321,13 +449,16 @@ const Dashboard: React.FC = () => {
             formData.nisn,
             "student-photos",
           );
-        } catch {}
+        } catch (err) {
+          console.error("Photo upload failed:", err);
+        }
       }
       const studentData = {
         ...formData,
         class: "XI RPL 1",
         photo_url: photoUrl || null,
       };
+      
       let dbError;
       if (editingId) {
         const { error } = await supabase
@@ -339,7 +470,9 @@ const Dashboard: React.FC = () => {
         const { error } = await supabase.from("students").insert([studentData]);
         dbError = error;
       }
+      
       if (dbError) throw dbError;
+      
       setSuccess(
         editingId ? "Siswa berhasil diupdate!" : "Siswa berhasil ditambahkan!",
       );
@@ -347,6 +480,7 @@ const Dashboard: React.FC = () => {
       await fetchStudents();
       closeStudentModal();
     } catch (err: any) {
+      console.error("Submit error:", err);
       setError("Gagal menyimpan data siswa: " + err.message);
       setTimeout(() => setError(""), 3000);
     } finally {
@@ -375,9 +509,12 @@ const Dashboard: React.FC = () => {
             teacherFormData.email,
             "teacher-photos",
           );
-        } catch {}
+        } catch (err) {
+          console.error("Photo upload failed:", err);
+        }
       }
       const teacherData = { ...teacherFormData, photo_url: photoUrl || null };
+      
       if (editingTeacherId) {
         const { error } = await supabase
           .from("teachers")
@@ -394,6 +531,7 @@ const Dashboard: React.FC = () => {
       await fetchTeachers();
       closeTeacherModal();
     } catch (err: any) {
+      console.error("Submit teacher error:", err);
       setError("Gagal menyimpan data guru: " + err.message);
       setTimeout(() => setError(""), 3000);
     } finally {
@@ -417,6 +555,7 @@ const Dashboard: React.FC = () => {
       setSuccess(`${type === "student" ? "Siswa" : "Guru"} berhasil dihapus!`);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
+      console.error("Delete error:", err);
       setError(`Gagal menghapus: ` + err.message);
       setTimeout(() => setError(""), 3000);
     }
@@ -424,11 +563,15 @@ const Dashboard: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    try {
+      return new Date(dateString).toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "-";
+    }
   };
 
   const filteredStudents = students.filter(
@@ -462,12 +605,26 @@ const Dashboard: React.FC = () => {
   useEffect(() => setCurrentPageStudents(1), [searchTerm]);
   useEffect(() => setCurrentPageTeachers(1), [searchTeacher]);
 
+  // Loading state
+  if (loading && students.length === 0 && teachers.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-sky-400">
+        <Navbar />
+        <div className="flex items-center justify-center h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white text-lg">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-300 to-sky-400">
       <Navbar />
 
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        {/* ✅ Header dengan framer-motion seperti grades.tsx */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -485,7 +642,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-teal-100">
                   Selamat datang,{" "}
                   <span className="font-bold">
-                    {user?.email?.split("@")[0]}
+                    {user?.email?.split("@")[0] || "User"}
                   </span>
                 </p>
               </div>
@@ -532,14 +689,13 @@ const Dashboard: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* ✅ Student Section dengan motion */}
+          {/* Student Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
             className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/50"
           >
-            {/* Header */}
             <div className="px-6 py-6 border-b border-slate-200 bg-gradient-to-r from-teal-50 to-cyan-50">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">
@@ -589,67 +745,21 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-slate-700 to-slate-800">
                   <tr>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      No
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Foto
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Nama
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      NISN
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Jenis Kelamin
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Tanggal Lahir
-                    </th>
-                    <th className="px-6 py-4 text-center text-white font-semibold">
-                      Aksi
-                    </th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">No</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Foto</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Nama</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">NISN</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Jenis Kelamin</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Tanggal Lahir</th>
+                    <th className="px-6 py-4 text-center text-white font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {loading ? (
-                    // ✅ Skeleton loading untuk tabel
-                    [...Array(5)].map((_, i) => (
-                      <tr key={i} className="animate-pulse">
-                        <td className="px-6 py-4">
-                          <div className="h-4 bg-slate-200 rounded w-6"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="w-12 h-12 bg-slate-200 rounded-full"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 bg-slate-200 rounded w-32 mb-2"></div>
-                          <div className="h-3 bg-slate-100 rounded w-24"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 bg-slate-200 rounded w-24"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-6 bg-slate-200 rounded-full w-20"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 bg-slate-200 rounded w-28"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex gap-2 justify-center">
-                            <div className="h-8 bg-slate-200 rounded w-16"></div>
-                            <div className="h-8 bg-slate-200 rounded w-16"></div>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : currentStudents.length === 0 ? (
+                  {currentStudents.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-12 text-center">
                         <p className="text-slate-500 font-medium">
@@ -681,30 +791,16 @@ const Dashboard: React.FC = () => {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                <svg
-                                  className="w-6 h-6"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-semibold text-slate-800">
-                            {student.name}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {student.email}
-                          </p>
+                          <p className="font-semibold text-slate-800">{student.name}</p>
+                          <p className="text-sm text-slate-500">{student.email}</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="font-mono text-slate-700 bg-slate-100 px-3 py-1 rounded-lg">
@@ -712,13 +808,8 @@ const Dashboard: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${student.student_gender === "Laki-laki" ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}`}
-                          >
-                            {student.student_gender === "Laki-laki"
-                              ? "👨"
-                              : "👩"}{" "}
-                            {student.student_gender}
+                          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${student.student_gender === "Laki-laki" ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}`}>
+                            {student.student_gender === "Laki-laki" ? "👨" : "👩"} {student.student_gender}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-slate-700">
@@ -730,39 +821,17 @@ const Dashboard: React.FC = () => {
                               onClick={() => openStudentModal(student)}
                               className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-all duration-300 flex items-center gap-2"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                               Edit
                             </button>
                             <button
-                              onClick={() =>
-                                handleDelete(student.id, "student")
-                              }
+                              onClick={() => handleDelete(student.id, "student")}
                               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300 flex items-center gap-2"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                               Hapus
                             </button>
@@ -783,10 +852,7 @@ const Dashboard: React.FC = () => {
                     Menampilkan{" "}
                     <span className="font-semibold text-teal-600">
                       {startIndexStudents + 1}-
-                      {Math.min(
-                        startIndexStudents + itemsPerPage,
-                        filteredStudents.length,
-                      )}
+                      {Math.min(startIndexStudents + itemsPerPage, filteredStudents.length)}
                     </span>{" "}
                     dari{" "}
                     <span className="font-semibold text-teal-600">
@@ -794,38 +860,24 @@ const Dashboard: React.FC = () => {
                     </span>{" "}
                     siswa
                   </p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPageStudents((p) => p - 1)}
-                      disabled={currentPageStudents === 1}
-                      className="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      ← Prev
-                    </button>
-                    <span className="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg">
-                      {currentPageStudents}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPageStudents((p) => p + 1)}
-                      disabled={currentPageStudents === totalPagesStudents}
-                      className="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      Next →
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPageStudents}
+                    totalPages={totalPagesStudents}
+                    onPageChange={setCurrentPageStudents}
+                    colorClass="bg-teal-500"
+                  />
                 </div>
               </div>
             )}
           </motion.div>
 
-          {/* ✅ Teacher Section dengan motion */}
+          {/* Teacher Section */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.2 }}
             className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/50"
           >
-            {/* Header */}
             <div className="px-6 py-6 border-b border-slate-200 bg-gradient-to-r from-purple-50 to-pink-50">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-3">
@@ -833,29 +885,15 @@ const Dashboard: React.FC = () => {
                     <span className="text-white">👨‍🏫</span>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-slate-800">
-                      Daftar Guru
-                    </h2>
-                    <p className="text-sm text-slate-600">
-                      Pengajar Kelas XI RPL 1
-                    </p>
+                    <h2 className="text-xl font-bold text-slate-800">Daftar Guru</h2>
+                    <p className="text-sm text-slate-600">Pengajar Kelas XI RPL 1</p>
                   </div>
                 </div>
                 <div className="flex gap-3 w-full md:w-auto">
                   <div className="relative flex-1 md:w-64">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg
-                        className="w-5 h-5 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                        />
+                      <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
                     <input
@@ -877,29 +915,16 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-purple-700 to-pink-800">
                   <tr>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      No
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Foto
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Nama
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Jenis Kelamin
-                    </th>
-                    <th className="px-6 py-4 text-left text-white font-semibold">
-                      Mata Pelajaran
-                    </th>
-                    <th className="px-6 py-4 text-center text-white font-semibold">
-                      Aksi
-                    </th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">No</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Foto</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Nama</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Jenis Kelamin</th>
+                    <th className="px-6 py-4 text-left text-white font-semibold">Mata Pelajaran</th>
+                    <th className="px-6 py-4 text-center text-white font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -907,9 +932,7 @@ const Dashboard: React.FC = () => {
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
                         <p className="text-slate-500 font-medium">
-                          {searchTeacher
-                            ? "Tidak ada hasil pencarian"
-                            : "Belum ada data guru"}
+                          {searchTeacher ? "Tidak ada hasil pencarian" : "Belum ada data guru"}
                         </p>
                       </td>
                     </tr>
@@ -928,59 +951,32 @@ const Dashboard: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 border-2 border-white shadow">
                             {teacher.photo_url ? (
-                              <img
-                                src={teacher.photo_url}
-                                alt={teacher.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={teacher.photo_url} alt={teacher.name} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                <svg
-                                  className="w-6 h-6"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-semibold text-slate-800">
-                            {teacher.name}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {teacher.email}
-                          </p>
+                          <p className="font-semibold text-slate-800">{teacher.name}</p>
+                          <p className="text-sm text-slate-500">{teacher.email}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${teacher.teacher_gender === "Laki-laki" ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}`}
-                          >
-                            {teacher.teacher_gender === "Laki-laki"
-                              ? "👨"
-                              : "👩"}{" "}
-                            {teacher.teacher_gender}
+                          <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${teacher.teacher_gender === "Laki-laki" ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}`}>
+                            {teacher.teacher_gender === "Laki-laki" ? "👨" : "👩"} {teacher.teacher_gender}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-wrap gap-2">
-                            {teacher.subjects &&
-                              teacher.subjects.map((subject, idx) => (
-                                <span
-                                  key={idx}
-                                  className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
-                                >
-                                  {subject}
-                                </span>
-                              ))}
+                            {teacher.subjects?.map((subject, idx) => (
+                              <span key={idx} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                                {subject}
+                              </span>
+                            ))}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -989,39 +985,17 @@ const Dashboard: React.FC = () => {
                               onClick={() => openTeacherModal(teacher)}
                               className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-all duration-300 flex items-center gap-2"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
                               Edit
                             </button>
                             <button
-                              onClick={() =>
-                                handleDelete(teacher.id, "teacher")
-                              }
+                              onClick={() => handleDelete(teacher.id, "teacher")}
                               className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-300 flex items-center gap-2"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                               Hapus
                             </button>
@@ -1042,10 +1016,7 @@ const Dashboard: React.FC = () => {
                     Menampilkan{" "}
                     <span className="font-semibold text-purple-600">
                       {startIndexTeachers + 1}-
-                      {Math.min(
-                        startIndexTeachers + itemsPerPage,
-                        filteredTeachers.length,
-                      )}
+                      {Math.min(startIndexTeachers + itemsPerPage, filteredTeachers.length)}
                     </span>{" "}
                     dari{" "}
                     <span className="font-semibold text-purple-600">
@@ -1053,25 +1024,12 @@ const Dashboard: React.FC = () => {
                     </span>{" "}
                     guru
                   </p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPageTeachers((p) => p - 1)}
-                      disabled={currentPageTeachers === 1}
-                      className="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      ← Prev
-                    </button>
-                    <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg">
-                      {currentPageTeachers}
-                    </span>
-                    <button
-                      onClick={() => setCurrentPageTeachers((p) => p + 1)}
-                      disabled={currentPageTeachers === totalPagesTeachers}
-                      className="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      Next →
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPageTeachers}
+                    totalPages={totalPagesTeachers}
+                    onPageChange={setCurrentPageTeachers}
+                    colorClass="bg-purple-500"
+                  />
                 </div>
               </div>
             )}
@@ -1079,7 +1037,7 @@ const Dashboard: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* Student Modal */}
+      {/* Student Modal - Sama seperti sebelumnya */}
       <AnimatePresence>
         {showStudentModal && (
           <motion.div
@@ -1100,211 +1058,75 @@ const Dashboard: React.FC = () => {
                   <h3 className="text-xl font-bold">
                     {editingId ? "Edit Data Siswa" : "Tambah Siswa Baru"}
                   </h3>
-                  <button
-                    onClick={closeStudentModal}
-                    className="text-white hover:text-gray-200 transition-colors"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <button onClick={closeStudentModal} className="text-white hover:text-gray-200 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {/* Form fields - sama seperti sebelumnya */}
                 <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
                   <div className="w-40 h-40 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 border-4 border-white shadow-lg">
                     {photoPreview ? (
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <svg
-                          className="w-12 h-12"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <input
-                      type="file"
-                      id="photo"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="photo"
-                      className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl cursor-pointer hover:from-blue-600 hover:to-cyan-600 transition-all duration-300"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
+                    <input type="file" id="photo" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                    <label htmlFor="photo" className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl cursor-pointer hover:from-blue-600 hover:to-cyan-600 transition-all duration-300">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       Pilih Foto
                     </label>
-                    <p className="text-sm text-slate-500 mt-2">
-                      Format: JPG, PNG • Maks: 2MB
-                    </p>
+                    <p className="text-sm text-slate-500 mt-2">Format: JPG, PNG • Maks: 2MB</p>
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      Nama Lengkap *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
-                      placeholder="Nama lengkap siswa"
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">Nama Lengkap *</label>
+                    <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none" placeholder="Nama lengkap siswa" required />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
-                      placeholder="email@example.com"
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">Email *</label>
+                    <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none" placeholder="email@example.com" required />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      NISN *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.nisn}
-                      onChange={(e) =>
-                        setFormData({ ...formData, nisn: e.target.value })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
-                      placeholder="10 digit NISN"
-                      maxLength={10}
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">NISN *</label>
+                    <input type="text" value={formData.nisn} onChange={(e) => setFormData({ ...formData, nisn: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none" placeholder="10 digit NISN" maxLength={10} required />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      Tanggal Lahir *
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.birth_date}
-                      onChange={(e) =>
-                        setFormData({ ...formData, birth_date: e.target.value })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">Tanggal Lahir *</label>
+                    <input type="date" value={formData.birth_date} onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none" required />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-medium mb-3">
-                    Jenis Kelamin *
-                  </label>
+                  <label className="block text-slate-700 font-medium mb-3">Jenis Kelamin *</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="student_gender"
-                        value="Laki-laki"
-                        checked={formData.student_gender === "Laki-laki"}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            student_gender: e.target.value,
-                          })
-                        }
-                        className="w-4 h-4 text-teal-500"
-                        required
-                      />
+                      <input type="radio" name="student_gender" value="Laki-laki" checked={formData.student_gender === "Laki-laki"} onChange={(e) => setFormData({ ...formData, student_gender: e.target.value })} className="w-4 h-4 text-teal-500" required />
                       <span className="text-slate-700">👨 Laki-laki</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="student_gender"
-                        value="Perempuan"
-                        checked={formData.student_gender === "Perempuan"}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            student_gender: e.target.value,
-                          })
-                        }
-                        className="w-4 h-4 text-teal-500"
-                        required
-                      />
+                      <input type="radio" name="student_gender" value="Perempuan" checked={formData.student_gender === "Perempuan"} onChange={(e) => setFormData({ ...formData, student_gender: e.target.value })} className="w-4 h-4 text-teal-500" required />
                       <span className="text-slate-700">👩 Perempuan</span>
                     </label>
                   </div>
                 </div>
                 <div className="flex gap-3 pt-4 border-t border-slate-200">
-                  <button
-                    type="submit"
-                    disabled={uploading}
-                    className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3.5 rounded-xl hover:from-teal-600 hover:to-cyan-600 disabled:opacity-50 font-semibold transition-all duration-300"
-                  >
-                    {uploading
-                      ? "Menyimpan..."
-                      : editingId
-                        ? "Update Data"
-                        : "Simpan Data"}
+                  <button type="submit" disabled={uploading} className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-3.5 rounded-xl hover:from-teal-600 hover:to-cyan-600 disabled:opacity-50 font-semibold transition-all duration-300">
+                    {uploading ? "Menyimpan..." : editingId ? "Update Data" : "Simpan Data"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={closeStudentModal}
-                    className="px-8 py-3.5 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-300 font-medium"
-                  >
+                  <button type="button" onClick={closeStudentModal} className="px-8 py-3.5 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-300 font-medium">
                     Batal
                   </button>
                 </div>
@@ -1335,22 +1157,9 @@ const Dashboard: React.FC = () => {
                   <h3 className="text-xl font-bold">
                     {editingTeacherId ? "Edit Data Guru" : "Tambah Guru Baru"}
                   </h3>
-                  <button
-                    onClick={closeTeacherModal}
-                    className="text-white hover:text-gray-200 transition-colors"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                  <button onClick={closeTeacherModal} className="text-white hover:text-gray-200 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -1359,140 +1168,46 @@ const Dashboard: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
                   <div className="w-40 h-40 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 border-4 border-white shadow-lg">
                     {teacherPhotoPreview ? (
-                      <img
-                        src={teacherPhotoPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={teacherPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <svg
-                          className="w-12 h-12"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                          />
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </div>
                     )}
                   </div>
                   <div className="flex-1">
-                    <input
-                      type="file"
-                      id="teacher-photo"
-                      accept="image/*"
-                      onChange={handleTeacherPhotoChange}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="teacher-photo"
-                      className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl cursor-pointer hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
+                    <input type="file" id="teacher-photo" accept="image/*" onChange={handleTeacherPhotoChange} className="hidden" />
+                    <label htmlFor="teacher-photo" className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl cursor-pointer hover:from-purple-600 hover:to-pink-600 transition-all duration-300">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       Pilih Foto
                     </label>
-                    <p className="text-sm text-slate-500 mt-2">
-                      Format: JPG, PNG • Maks: 2MB
-                    </p>
+                    <p className="text-sm text-slate-500 mt-2">Format: JPG, PNG • Maks: 2MB</p>
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      Nama Lengkap *
-                    </label>
-                    <input
-                      type="text"
-                      value={teacherFormData.name}
-                      onChange={(e) =>
-                        setTeacherFormData({
-                          ...teacherFormData,
-                          name: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none"
-                      placeholder="Nama lengkap guru"
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">Nama Lengkap *</label>
+                    <input type="text" value={teacherFormData.name} onChange={(e) => setTeacherFormData({ ...teacherFormData, name: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none" placeholder="Nama lengkap guru" required />
                   </div>
                   <div>
-                    <label className="block text-slate-700 font-medium mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      value={teacherFormData.email}
-                      onChange={(e) =>
-                        setTeacherFormData({
-                          ...teacherFormData,
-                          email: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none"
-                      placeholder="email@example.com"
-                      required
-                    />
+                    <label className="block text-slate-700 font-medium mb-2">Email *</label>
+                    <input type="email" value={teacherFormData.email} onChange={(e) => setTeacherFormData({ ...teacherFormData, email: e.target.value })} className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent outline-none" placeholder="email@example.com" required />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-medium mb-3">
-                    Jenis Kelamin
-                  </label>
+                  <label className="block text-slate-700 font-medium mb-3">Jenis Kelamin</label>
                   <div className="flex gap-4">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="teacher_gender"
-                        value="Laki-laki"
-                        checked={teacherFormData.teacher_gender === "Laki-laki"}
-                        onChange={(e) =>
-                          setTeacherFormData({
-                            ...teacherFormData,
-                            teacher_gender: e.target.value,
-                          })
-                        }
-                        className="w-4 h-4 text-purple-500"
-                      />
+                      <input type="radio" name="teacher_gender" value="Laki-laki" checked={teacherFormData.teacher_gender === "Laki-laki"} onChange={(e) => setTeacherFormData({ ...teacherFormData, teacher_gender: e.target.value })} className="w-4 h-4 text-purple-500" />
                       <span className="text-slate-700">👨 Laki-laki</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="teacher_gender"
-                        value="Perempuan"
-                        checked={teacherFormData.teacher_gender === "Perempuan"}
-                        onChange={(e) =>
-                          setTeacherFormData({
-                            ...teacherFormData,
-                            teacher_gender: e.target.value,
-                          })
-                        }
-                        className="w-4 h-4 text-purple-500"
-                      />
+                      <input type="radio" name="teacher_gender" value="Perempuan" checked={teacherFormData.teacher_gender === "Perempuan"} onChange={(e) => setTeacherFormData({ ...teacherFormData, teacher_gender: e.target.value })} className="w-4 h-4 text-purple-500" />
                       <span className="text-slate-700">👩 Perempuan</span>
                     </label>
                   </div>
@@ -1504,16 +1219,8 @@ const Dashboard: React.FC = () => {
                   <Select
                     isMulti
                     options={getAvailableSubjects()}
-                    value={teacherFormData.subjects.map((s) => ({
-                      value: s,
-                      label: s,
-                    }))}
-                    onChange={(selected) =>
-                      setTeacherFormData({
-                        ...teacherFormData,
-                        subjects: selected ? selected.map((s) => s.value) : [],
-                      })
-                    }
+                    value={teacherFormData.subjects.map((s) => ({ value: s, label: s }))}
+                    onChange={(selected) => setTeacherFormData({ ...teacherFormData, subjects: selected ? selected.map((s) => s.value) : [] })}
                     placeholder="Pilih mata pelajaran..."
                     className="text-left"
                     styles={{
@@ -1535,28 +1242,13 @@ const Dashboard: React.FC = () => {
                       }),
                     }}
                   />
-                  <p className="text-xs text-slate-500 mt-2">
-                    💡 Mapel yang sudah dipilih guru lain tidak bisa dipilih
-                    lagi
-                  </p>
+                  <p className="text-xs text-slate-500 mt-2">💡 Mapel yang sudah dipilih guru lain tidak bisa dipilih lagi</p>
                 </div>
                 <div className="flex gap-3 pt-4 border-t border-slate-200">
-                  <button
-                    type="submit"
-                    disabled={uploadingTeacher}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3.5 rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 font-semibold transition-all duration-300"
-                  >
-                    {uploadingTeacher
-                      ? "Menyimpan..."
-                      : editingTeacherId
-                        ? "Update Data"
-                        : "Simpan Data"}
+                  <button type="submit" disabled={uploadingTeacher} className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3.5 rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 font-semibold transition-all duration-300">
+                    {uploadingTeacher ? "Menyimpan..." : editingTeacherId ? "Update Data" : "Simpan Data"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={closeTeacherModal}
-                    className="px-8 py-3.5 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-300 font-medium"
-                  >
+                  <button type="button" onClick={closeTeacherModal} className="px-8 py-3.5 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-300 font-medium">
                     Batal
                   </button>
                 </div>

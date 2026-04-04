@@ -2,7 +2,7 @@ import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { supabaseBrowser } from '@/lib/supabase-browser'
+import { supabaseBrowser } from '@/lib/supabase-browser-ori'
 import { useAuthStore } from '@/store/authStore'
 
 export default function App({ Component, pageProps }: AppProps) {

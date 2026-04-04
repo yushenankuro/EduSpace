@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { supabaseBrowser } from '@/lib/supabase-browser';
+import { supabaseBrowser } from '@/lib/supabase-browser-ori';
 
 const RegisterPage: React.FC = () => {
   const router = useRouter();
